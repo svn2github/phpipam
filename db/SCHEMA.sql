@@ -6,7 +6,7 @@ CREATE TABLE `instructions` (
   `id` int(11) NOT NULL,
   `instructions` text,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /* insert default values */
 INSERT INTO `instructions` (`id`, `instructions`)
 VALUES
@@ -35,7 +35,7 @@ CREATE TABLE `ipaddresses` (
   `editDate` TIMESTAMP  NULL  ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `subnetid` (`subnetId`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /* insert default values */
 INSERT INTO `ipaddresses` (`id`, `subnetId`, `ip_addr`, `description`, `dns_name`, `state`)
 VALUES
@@ -64,7 +64,7 @@ CREATE TABLE `logs` (
   `command` varchar(128) DEFAULT '0',
   `details` varchar(1024) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 # Dump of table requests
@@ -84,7 +84,7 @@ CREATE TABLE `requests` (
   `accepted` binary(1) DEFAULT NULL,
   `adminComment` text,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 # Dump of table sections
@@ -107,7 +107,7 @@ CREATE TABLE `sections` (
   PRIMARY KEY (`name`),
   UNIQUE KEY `id_2` (`id`),
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /* insert default values */
 INSERT INTO `sections` (`id`, `name`, `description`, `permissions`)
 VALUES
@@ -157,7 +157,7 @@ CREATE TABLE `settings` (
   `tempShare` TINYINT(1)  NULL  DEFAULT '0',
   `tempAccess` TEXT  NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /* insert default values */
 INSERT INTO `settings` (`id`, `siteTitle`, `siteAdminName`, `siteAdminMail`, `siteDomain`, `siteURL`, `domainAuth`, `enableIPrequests`, `enableVRF`, `enableDNSresolving`, `version`, `donate`, `IPfilter`, `vlanDuplicate`, `subnetOrdering`, `visualLimit`)
 VALUES
@@ -180,7 +180,7 @@ CREATE TABLE `settingsDomain` (
   `adminPassword` VARCHAR(64)  NULL  DEFAULT NULL ,
   `editDate` TIMESTAMP  NULL  ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /* insert default values */
 INSERT INTO `settingsDomain` (`id`, `account_suffix`, `base_dn`, `domain_controllers`)
 VALUES
@@ -203,7 +203,7 @@ CREATE TABLE `settingsMail` (
   `mAdminName` varchar(64) DEFAULT NULL,
   `mAdminMail` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /* insert default values */
 INSERT INTO `settingsMail` (`id`, `mtype`)
 VALUES
@@ -233,7 +233,7 @@ CREATE TABLE `subnets` (
   `state` INT(3)  NULL  DEFAULT '2',
   `editDate` TIMESTAMP  NULL  ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /* insert default values */
 INSERT INTO `subnets` (`id`, `subnet`, `mask`, `sectionId`, `description`, `vrfId`, `masterSubnetId`, `allowRequests`, `vlanId`, `showName`, `permissions`, `isFolder`)
 VALUES
@@ -261,7 +261,7 @@ CREATE TABLE `devices` (
   `editDate` TIMESTAMP  NULL  ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `hostname` (`hostname`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /* insert default values */
 INSERT INTO `devices` (`id`, `hostname`, `ip_addr`, `type`, `vendor`, `model`, `sections`)
 VALUES
@@ -279,7 +279,7 @@ CREATE TABLE `userGroups` (
   `g_desc` varchar(1024) DEFAULT NULL,
   `editDate` TIMESTAMP  NULL  ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`g_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /* insert default values */
 INSERT INTO `userGroups` (`g_id`, `g_name`, `g_desc`)
 VALUES
@@ -310,13 +310,13 @@ CREATE TABLE `users` (
   `editDate` TIMESTAMP  NULL  ON UPDATE CURRENT_TIMESTAMP,
   `lastLogin` TIMESTAMP  NULL,
   `lastActivity` TIMESTAMP  NULL,
-  `dhcpCompress` BOOL  NOT NULL  DEFAULT '0',
+  `compressOverride` SET('default','Uncompress') NOT NULL DEFAULT 'default',
   `hideFreeRange` tinyint(1) DEFAULT '0',
   `printLimit` int(4) unsigned DEFAULT '30',
   PRIMARY KEY (`username`),
   UNIQUE KEY `id_2` (`id`),
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /* insert default values */
 INSERT INTO `users` (`id`, `username`, `password`, `groups`, `role`, `real_name`, `email`, `domainUser`,`widgets`, `passChange`)
 VALUES
@@ -332,7 +332,7 @@ CREATE TABLE `lang` (
   `l_code` varchar(12) NOT NULL DEFAULT '',
   `l_name` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`l_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /* insert default values */
 INSERT INTO `lang` (`l_id`, `l_code`, `l_name`)
 VALUES
@@ -356,7 +356,7 @@ CREATE TABLE `vlans` (
   `description` text,
   `editDate` TIMESTAMP  NULL  ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`vlanId`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /* insert default values */
 INSERT INTO `vlans` (`vlanId`, `name`, `number`, `description`)
 VALUES
@@ -374,7 +374,7 @@ CREATE TABLE `vlanDomains` (
   `description` text,
   `permissions` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 /* insert default values */
 INSERT INTO `vlanDomains` (`id`, `name`, `description`, `permissions`)
 VALUES
@@ -392,7 +392,7 @@ CREATE TABLE `vrf` (
   `description` varchar(256) DEFAULT NULL,
   `editDate` TIMESTAMP  NULL  ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`vrfId`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 # Dump of table api
@@ -402,12 +402,13 @@ DROP TABLE IF EXISTS `api`;
 CREATE TABLE `api` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `app_id` varchar(32) NOT NULL DEFAULT '',
-  `app_code` varchar(32) NOT NULL DEFAULT '',
+  `app_code` varchar(32) NULL DEFAULT '',
   `app_permissions` int(1) DEFAULT '1',
   `app_comment` TEXT  NULL,
+  `app_security` SET('crypt','ssl','none')  NOT NULL  DEFAULT 'ssl',
   PRIMARY KEY (`id`),
   UNIQUE KEY `app_id` (`app_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 # Dump of table changelog
@@ -425,7 +426,7 @@ CREATE TABLE `changelog` (
   `cdiff` varchar(2048) DEFAULT NULL,
   PRIMARY KEY (`cid`),
   KEY `coid` (`coid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 # Dump of table widgets
@@ -455,7 +456,9 @@ VALUES
 	(6, 'Last 5 change log entries', 'Shows last 5 change log entries', 'changelog', NULL, 'yes', '12', 'no', 'yes'),
 	(7, 'Active IP addresses requests', 'Shows list of active IP address request', 'requests', NULL, 'yes', '6', 'yes', 'yes'),
 	(8, 'Last 5 informational logs', 'Shows list of last 5 informational logs', 'access_logs', NULL, 'yes', '6', 'yes', 'yes'),
-	(9, 'Last 5 warning / error logs', 'Shows list of last 5 warning and error logs', 'error_logs', NULL, 'yes', '6', 'yes', 'yes');
+	(9, 'Last 5 warning / error logs', 'Shows list of last 5 warning and error logs', 'error_logs', NULL, 'yes', '6', 'yes', 'yes'),
+	(10,'Tools menu', 'Shows quick access to tools menu', 'tools', NULL, 'yes', '6', 'no', 'yes'),
+	(11,'IP Calculator', 'Shows IP calculator as widget', 'ipcalc', NULL, 'yes', '6', 'no', 'yes');
 
 
 # Dump of table deviceTypes
@@ -467,7 +470,7 @@ CREATE TABLE `deviceTypes` (
   `tname` varchar(128) DEFAULT NULL,
   `tdescription` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`tid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /* insert default values */
 INSERT INTO `deviceTypes` (`tid`, `tname`, `tdescription`)
 VALUES
@@ -493,7 +496,7 @@ CREATE TABLE `loginAttempts` (
   `count` int(2) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ip` (`ip`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 # Dump of table usersAuthMethod
@@ -507,7 +510,7 @@ CREATE TABLE `usersAuthMethod` (
   `protected` set('Yes','No') NOT NULL DEFAULT 'Yes',
   `description` text,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /* insert default values */
 INSERT INTO `usersAuthMethod` (`id`, `type`, `params`, `protected`, `description`)
 VALUES
@@ -524,16 +527,17 @@ CREATE TABLE `ipTags` (
   `showtag` tinyint(4) DEFAULT '1',
   `bgcolor` varchar(7) DEFAULT '#000',
   `fgcolor` varchar(7) DEFAULT '#fff',
+  `compress` SET('No','Yes')  NOT NULL  DEFAULT 'No',
   `locked` set('No','Yes') NOT NULL DEFAULT 'No',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /* insert default values */
-INSERT INTO `ipTags` (`id`, `type`, `showtag`, `bgcolor`, `fgcolor`, `locked`)
+INSERT INTO `ipTags` (`id`, `type`, `showtag`, `bgcolor`, `fgcolor`, `compress`, `locked`)
 VALUES
-	(1, 'Offline', 1, '#f59c99', '#ffffff', 'Yes'),
-	(2, 'Used', 0, '#a9c9a4', '#ffffff', 'Yes'),
-	(3, 'Reserved', 1, '#9ac0cd', '#ffffff', 'Yes'),
-	(4, 'DHCP', 1, '#c9c9c9', '#ffffff', 'Yes');
+	(1, 'Offline', 1, '#f59c99', '#ffffff', 'No', 'Yes'),
+	(2, 'Used', 0, '#a9c9a4', '#ffffff', 'No', 'Yes'),
+	(3, 'Reserved', 1, '#9ac0cd', '#ffffff', 'No', 'Yes'),
+	(4, 'DHCP', 1, '#c9c9c9', '#ffffff', 'Yes', 'Yes');
 
 
 # Dump of table -- for autofix comment, leave as it is
@@ -542,4 +546,4 @@ VALUES
 
 # update version
 # ------------------------------------------------------------
-UPDATE `settings` set `version` = '1.15';
+UPDATE `settings` set `version` = '1.16';

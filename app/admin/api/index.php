@@ -31,6 +31,7 @@ $all_apis = $Admin->fetch_all_objects("api");
 	    print "<th>"._('App id').'</th>';
 		print "<th>"._('App code').'</th>';
 	    print "<th>"._('App permissions').'</th>';
+	    print "<th>"._('App security').'</th>';
 	    print "<th>"._('Comment').'</th>';
 	    print '<th></th>';
 		print '</tr>';
@@ -39,6 +40,10 @@ $all_apis = $Admin->fetch_all_objects("api");
 		foreach ($all_apis as $a) {
 			# cast
 			$a = (array) $a;
+
+			# hide key if not crpt
+			if($a['app_security']!="crypt")	{ $a['app_code']="<span class='text-muted'>"._('Not used')."</span>"; }
+			if($a['app_security']=="ssl")	{ $a['app_security'] = "SSL"; }
 
 			print '<tr>' . "\n";
 
@@ -51,7 +56,11 @@ $all_apis = $Admin->fetch_all_objects("api");
 			elseif($a['app_permissions']==2)	{ $a['app_permissions'] = _("Read / Write"); }
 			elseif($a['app_permissions']==3)	{ $a['app_permissions'] = _("Read / Write / Admin"); }
 
+			# override permissions if user
+			if($a['app_security']=="user")	{ $a['app_permissions']="<span class='text-muted'>"._('Per user')."</span>"; }
+
 			print '	<td>' . $a['app_permissions'] . '</td>'. "\n";
+			print '	<td>' . ucwords($a['app_security']) . '</td>'. "\n";
 			print '	<td>' . $a['app_comment'] . '</td>'. "\n";
 
 			# add/remove APIs

@@ -105,6 +105,9 @@ if (strlen(strstr($address['ip_addr'],"-")) > 0) {
 	$start = $Subnets->transform_to_decimal($address['start']);
 	$stop  = $Subnets->transform_to_decimal($address['stop']);
 
+	# start cannot be higher than stop!
+	if($start>$stop)									{ $Result->show("danger", _("Invalid address range")."!", true); }
+
 	# we can manage only 255 IP's at once!
 	if(gmp_strval(gmp_sub($stop,$start)) > 255) 		{ $Result->show("danger", _("Only 255 IP addresses at once")."!", true); }
 

@@ -1134,57 +1134,64 @@ class Addresses {
 	}
 
 	/**
-	 * This function compresses DHCP ranges
+	 * This function compresses all ranges
 	 *
 	 *	input is array of ip addresses
-	 *	output compresses dhcp range
+	 *	output compresses address range
 	 *
 	 * @access public
 	 * @param array $addresses
 	 * @return void
 	 */
-	public function compress_dhcp_ranges ($addresses) {
+	public function compress_address_ranges ($addresses, $state=4) {
 		# loop through IP addresses
 		for($c=0; $c<sizeof($addresses); $c++) {
-			# gap between this and previous
-			if(gmp_strval( @gmp_sub($addresses[$c]->ip_addr, $addresses[$c-1]->ip_addr)) != 1) {
-				# remove index flag
-				unset($fIndex);
-				# save IP address
-				$addresses_formatted[$c] = $addresses[$c];
-				$addresses_formatted[$c]->class = "ip";
-
-				# no gap this -> next
-				if(gmp_strval( @gmp_sub($addresses[$c]->ip_addr, $addresses[$c+1]->ip_addr)) == -1 && $addresses[$c]->state==3) {
-					//is state the same?
-					if($addresses[$c]->state==$addresses[$c+1]->state) {
-						$fIndex = $c;
-						$addresses_formatted[$fIndex]->startIP = $addresses[$c]->ip_addr;
-						$addresses_formatted[$c]->class = "range-dhcp";
-					}
-				}
-			}
-			# no gap between this and previous
-			else {
-				# is state same as previous?
-				if($addresses[$c]->state==$addresses[$c-1]->state && $addresses[$c]->state==3) {
-					$addresses_formatted[$fIndex]->stopIP = $addresses[$c]->ip_addr;	//adds dhcp state
-					$addresses_formatted[$fIndex]->numHosts = gmp_strval( gmp_add(@gmp_sub($addresses[$c]->ip_addr, $addresses_formatted[$fIndex]->ip_addr),1));	//add number of hosts
-				}
-				# different state
-				else {
+			# ignore already comressed range
+			if($addresses[$c]->class!="compressed-range") {
+				# gap between this and previous
+				if(gmp_strval( @gmp_sub($addresses[$c]->ip_addr, $addresses[$c-1]->ip_addr)) != 1) {
 					# remove index flag
 					unset($fIndex);
 					# save IP address
 					$addresses_formatted[$c] = $addresses[$c];
 					$addresses_formatted[$c]->class = "ip";
-					# check if state is same as next to start range
-					if($addresses[$c]->state==@$addresses[$c+1]->state &&  gmp_strval( @gmp_sub($addresses[$c]->ip_addr, $addresses[$c+1]->ip_addr)) == -1 && $addresses[$c]->state==3) {
-						$fIndex = $c;
-						$addresses_formatted[$fIndex]->startIP = $addresses[$c]->ip_addr;
-						$addresses_formatted[$c]->class = "range-dhcp";
+
+					# no gap this -> next
+					if(gmp_strval( @gmp_sub($addresses[$c]->ip_addr, $addresses[$c+1]->ip_addr)) == -1 && $addresses[$c]->state==$state) {
+						//is state the same?
+						if($addresses[$c]->state==$addresses[$c+1]->state) {
+							$fIndex = $c;
+							$addresses_formatted[$fIndex]->startIP = $addresses[$c]->ip_addr;
+							$addresses_formatted[$c]->class = "compressed-range";
+						}
 					}
 				}
+				# no gap between this and previous
+				else {
+					# is state same as previous?
+					if($addresses[$c]->state==$addresses[$c-1]->state && $addresses[$c]->state==$state) {
+						$addresses_formatted[$fIndex]->stopIP = $addresses[$c]->ip_addr;	//adds dhcp state
+						$addresses_formatted[$fIndex]->numHosts = gmp_strval( gmp_add(@gmp_sub($addresses[$c]->ip_addr, $addresses_formatted[$fIndex]->ip_addr),1));	//add number of hosts
+					}
+					# different state
+					else {
+						# remove index flag
+						unset($fIndex);
+						# save IP address
+						$addresses_formatted[$c] = $addresses[$c];
+						$addresses_formatted[$c]->class = "ip";
+						# check if state is same as next to start range
+						if($addresses[$c]->state==@$addresses[$c+1]->state &&  gmp_strval( @gmp_sub($addresses[$c]->ip_addr, $addresses[$c+1]->ip_addr)) == -1 && $addresses[$c]->state==$state) {
+							$fIndex = $c;
+							$addresses_formatted[$fIndex]->startIP = $addresses[$c]->ip_addr;
+							$addresses_formatted[$c]->class = "compressed-range";
+						}
+					}
+				}
+			}
+			else {
+				# save already compressed
+				$addresses_formatted[$c] = $addresses[$c];
 			}
 		}
 		# overrwrite ipaddresses and rekey

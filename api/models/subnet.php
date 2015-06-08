@@ -10,16 +10,16 @@ class Subnet
 	var $query;				// db query
 	var $result;			// array result from database
 	var $format;			// set IP format
-	
+
 	# classes
 	var $Database;			// to store database object
-	var $Common;			// Common functions 
-	
+	var $Common;			// Common functions
+
 
 	/**
 	 * 	construct
 	 */
-	public function __construct() 
+	public function __construct()
 	{
 		# initialize database class
 		require( dirname(__FILE__) . '/../../config.php' );
@@ -29,12 +29,12 @@ class Subnet
 		# set defauld method
 		$this->format = "decimal";
 	}
-	
-	
+
+
 	/**
 	 *	fetch form database
 	 */
-	private function fetchArray() 
+	private function fetchArray()
 	{
 		try { $this->result = $this->Database->getArray( $this->query ); }
 	    catch (Exception $e) 													{ throw new Exception($e->getMessage()); }
@@ -44,7 +44,7 @@ class Subnet
 	/**
 	 *	execute query
 	 */
-	private function executeQuery() 
+	private function executeQuery()
 	{
 		try { $this->result = $this->Database->executeQuery( $this->query ); }
 	    catch (Exception $e) 													{ throw new Exception($e->getMessage()); }
@@ -58,7 +58,7 @@ class Subnet
 	{
 		/* check input */
 		$this->Common->check_input;
-		
+
 		/* all subnets */
 		if($this->all) {
 			//set query
@@ -82,29 +82,29 @@ class Subnet
 		}
 		/* method missing */
 		else 																	{ throw new Exception('Selector missing'); }
-	
+
 		//convert object to array
 		$result = $this->Common->toArray($this->result);
-		
+
 		//reformat?
 		if($this->format == "ip") { $result = $this->Common->format_ip($result); }
-			
+
 		//return result
 		return $result;
 	}
 
 
 	/**
-	 *	delete Subnet 
+	 *	delete Subnet
 	 *		id must be provided
 	 *
 	 *		we must also delete all IP addresses if requested!
-	 */	
+	 */
 	public function deleteSubnet ()
 	{
 		//check input
 		$this->Common->check_var ("int", $this->id, null);
-		
+
 		//verify that it exists
 		try { $this->readSubnet(); }
 		catch (Exception $e) 													{ throw new Exception($e->getMessage()); }
@@ -112,16 +112,16 @@ class Subnet
 		# we need address class to delete IPs!
 		if($this->addresses) {
 			$Address = new Address;
-			
+
 			//fetch and delete all ips in subnet
 			$Address->subnetId = $this->id;			//provide subnetis
 			try { $addresses = $Address->readAddress(); }
-			catch (Exception $e) 												{ 
+			catch (Exception $e) 												{
 				//if empty it is ok!
 				if($e->getMessage()=="No addresses") 							{  }
 				else															{ throw new Exception($e->getMessage()); }
 			}
-			
+
 			//delete all Ips
 			if(sizeof($addresses)>0) {
 				foreach($addresses as $a) {
@@ -129,15 +129,15 @@ class Subnet
 					//delete
 					try { $addresses = $Address->deleteAddress(); }
 					catch (Exception $e) 										{ throw new Exception($e->getMessage()); }
-					
+
 				}
 			}
 		}
-		
+
 		//set query to delete subnet and execute
 		$this->query = "delete from `subnets` where `id` = ".$this->id.";";
 		$this->executeQuery();
-		
+
 		//set result
 		$result['result']   = "success";
 		$result['response'] = "subnet id ".$this->id." deleted successfully!";
@@ -145,5 +145,5 @@ class Subnet
 		//return result
 		return $result;
 	}
-	
+
 }

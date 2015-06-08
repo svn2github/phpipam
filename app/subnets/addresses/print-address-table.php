@@ -93,9 +93,14 @@ if($selected_ip_fields_size==1 && strlen($selected_ip_fields[0])==0) { $selected
 
 # save for visual display !
 $addresses_visual = $addresses;
-# compress DHCP ranges If compress is set in settings
-if($User->user->dhcpCompress==1 && $addresses && @$orphaned!=true) {
-	$addresses = $Addresses->compress_dhcp_ranges ($addresses);
+# new compress functions
+$Addresses->addresses_types_fetch();
+foreach($Addresses->address_types as $t) {
+	if($t['compress']=="Yes" && $User->user->compressOverride!="Uncompress") {
+		if(sizeof($addresses)>0) {
+			$addresses = $Addresses->compress_address_ranges ($addresses, $t['id']);
+		}
+	}
 }
 
 # set colspan for output
@@ -243,13 +248,13 @@ else {
 		       	#
 
 		       	# check gap between network address and first IP address
-		       	if ( $n == 0 ) 																	{ $unused = $Addresses->find_unused_addresses ( $Subnets->transform_to_decimal($subnet_detailed['network']), $addresses[$n]->ip_addr, $subnet['mask']); }
+		       	if ( $n == 0 ) 											{ $unused = $Addresses->find_unused_addresses ( $Subnets->transform_to_decimal($subnet_detailed['network']), $addresses[$n]->ip_addr, $subnet['mask']); }
 		       	# check unused space between IP addresses
 		       	else {
 		       		// compressed and dhcp?
-		       		if($User->user->dhcpCompress && $addresses[$n-1]->class=="range-dhcp") 	{ $unused = $Addresses->find_unused_addresses ( $addresses[$n-1]->stopIP, $addresses[$n]->ip_addr, $subnet['mask'] );  }
+		       		if($addresses[$n-1]->class=="compressed-range") 	{ $unused = $Addresses->find_unused_addresses ( $addresses[$n-1]->stopIP, $addresses[$n]->ip_addr, $subnet['mask'] );  }
 		       		//uncompressed
-		       		else 																		{ $unused = $Addresses->find_unused_addresses ( $addresses[$n-1]->ip_addr, $addresses[$n]->ip_addr, $subnet['mask'] );  }
+		       		else 												{ $unused = $Addresses->find_unused_addresses ( $addresses[$n-1]->ip_addr, $addresses[$n]->ip_addr, $subnet['mask'] );  }
 		       	}
 
 		       	# if there is some result for unused print it - if sort == ip_addr
@@ -268,7 +273,7 @@ else {
 			    #
 
 			    # ip - range
-			    if(@$addresses[$n]->class=="range-dhcp")
+			    if(@$addresses[$n]->class=="compressed-range")
 			    {
 			    	print "<tr class='dhcp'>";
 				    print "	<td>";
@@ -279,7 +284,7 @@ else {
 				    print 		$Subnets->transform_to_dotted( $addresses[$n]->ip_addr).' - '.$Subnets->transform_to_dotted( $addresses[$n]->stopIP)." (".$addresses[$n]->numHosts.")";
 				    print 		$Addresses->address_type_format_tag($addresses[$n]->state);
 				    print "	</td>";
-					print "	<td>"._("DHCP range")."</td>";
+					print "	<td>".$Addresses->address_type_index_to_type($addresses[$n]->state)." ("._("range").")</td>";
 	        		print "	<td>".$addresses[$n]->description."</td>";
 	        		if($colspan['dhcp']!=0)
 	        		print "	<td colspan='$colspan[dhcp]' class='unused'></td>";
@@ -289,15 +294,7 @@ else {
 			    # ip - normal
 			    else
 			    {
-			        /*	set class for reserved and offline - if set! */
-				    $stateClass = "";
-			        if(in_array('state', $selected_ip_fields)) {
-				        if ($addresses[$n]->state == 0) 	 	{ $stateClass = _("Offline"); }
-				        else if ($addresses[$n]->state == 2) 	{ $stateClass = _("Reserved"); }
-				        else if ($addresses[$n]->state == 3) 	{ $stateClass = _("DHCP"); }
-				    }
-
-			 		print "<tr class='$stateClass'>";
+			 		print "<tr>";
 
 				    # status icon
 				    if($subnet['pingSubnet']=="1") {
@@ -390,7 +387,7 @@ else {
 				}
 				# write permitted
 				elseif( $subnet_permission > 1) {
-					if(@$addresses[$n]->class=="range-dhcp")
+					if(@$addresses[$n]->class=="compressed-range")
 					{
 						print "<a class='edit_ipaddress   btn btn-xs btn-default modIPaddr' data-action='edit'   data-subnetId='".$addresses[$n]->subnetId."' data-id='".$addresses[$n]->id."' data-stopIP='".$addresses[$n]->stopIP."' href='#'>				<i class='fa fa-gray fa-pencil'></i></a>";
 						print "<a class='				   btn btn-xs btn-default disabled' href='#'>																																									<i class='fa fa-gray fa-cogs'></i></a>";
@@ -409,7 +406,7 @@ else {
 				}
 				# write not permitted
 				else {
-					if($addresses[$n]->class=="range-dhcp")
+					if($addresses[$n]->class=="compressed-range")
 					{
 						print "<a class='edit_ipaddress   btn btn-xs btn-default disabled' rel='tooltip' data-container='body' title='"._('Edit IP address details (disabled)')."'>	<i class='fa fa-gray fa-pencil'></i></a>";
 						print "<a class='				   btn btn-xs btn-default disabled' href='#'>																					<i class='fa fa-gray fa-cogs'></i></a>";

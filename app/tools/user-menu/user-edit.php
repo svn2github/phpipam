@@ -27,6 +27,9 @@ if (strlen($_POST['password1']) != 0) {
 	else if ($_POST['password1'] != $_POST['password2']) 						{ $Result->show("danger alert-absolute", _('Passwords do not match!', true)); }
 }
 
+# set override
+$_POST['compressOverride'] = @$_POST['compressOverride']=="Uncompress" ? "Uncompress" : "default";
+
 # Update user
 if (!$User->self_update ($_POST)) 												{ $Result->show("danger alert-absolute",  _('Error updating user account!'), true); }
 else 																			{ $Result->show("success alert-absolute", _('Account updated successfully'), false); }

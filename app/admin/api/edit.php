@@ -80,6 +80,22 @@ if($_POST['action']!="add") {
        	<td class="info2"><?php print _('Application permissions'); ?></td>
     </tr>
 
+	<!-- Security -->
+	<tr>
+	    <td><?php print _('App security'); ?></td>
+	    <td>
+	    	<select name="app_security" class="form-control input-sm input-w-auto">
+	    	<?php
+	    	$perms = array(0=>"crypt",1=>"ssl",2=>"none",3=>"user");
+	    	foreach($perms as $k=>$p) {
+		    	if($p==$api->app_security)		{ print "<option value='$p' selected='selected'>"._($p)."</option>"; }
+		    	else							{ print "<option value='$p' 				   >"._($p)."</option>"; }
+	    	}
+	    	?>
+	    	</select>
+       	<td class="info2"><?php print _('Application security'); ?></td>
+    </tr>
+
     <!-- description -->
     <tr>
     	<td><?php print _('Description'); ?></td>

@@ -5,10 +5,6 @@ version - 1.2
 
 	+ Add request resolve to subnet for RWA users;
 
-	+ New widgets
-		+ tools widget (icons only)
-		+ subnet tags widget
-
 	+ Add missing api actions;
 
 	+ add customers module;
@@ -21,8 +17,6 @@ version - 1.2
 
 	+ IP address owner (from internal users)
 
-	+ Autocomplete mail addresses;
-
 	+ IPv6 pinging;
 
 	+ Mark subnet as full
@@ -33,7 +27,7 @@ version - 1.2
 
 	+ custom VRF fields
 
-	+ Templating;
+	+ Rack tables
 
 	+ ARIN whois (https://www.arin.net/resources/whoisrws/whois_api.html);
 

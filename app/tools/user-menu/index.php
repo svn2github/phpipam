@@ -129,12 +129,12 @@ if($User->user->authMethod == 1) {
 
 <!-- DHCP compress -->
 <tr>
-	<td class="title"><?php print _('DHCP compress'); ?></td>
+	<td class="title"><?php print _('Override compression'); ?></td>
 	<td>
-		<input type="checkbox" value="1" class="input-switch" name="dhcpCompress" <?php if($User->user->dhcpCompress == 1) print 'checked'; ?>>
+		<input type="checkbox" value="Uncompress" class="input-switch" name="compressOverride" <?php if($User->user->compressOverride == "Uncompress") print 'checked'; ?>>
 	</td>
 	<td class="info2">
-		<?php print _('Compress DHCP ranges in IP table'); ?>
+		<?php print _('Uncompress address ranges if compressed'); ?>
 	</td>
 </tr>
 

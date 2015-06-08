@@ -52,7 +52,7 @@ $(function(){
 
 	<!-- type -->
 	<tr>
-	    <td><?php print _('Type'); ?></td>
+	    <td style="width:120px;"><?php print _('Type'); ?></td>
 	    <td>
 		    <input type="text" name="type" class="form-control input-sm"  value="<?php print @$tag->type; ?>"  maxlength='32' <?php if($_POST['action'] == "delete") print "readonly"; ?>>
 			<input type="hidden" name="id" value="<?php print @$tag->id; ?>">
@@ -67,7 +67,6 @@ $(function(){
 		    <select name="showtag" class="form-control input-w-auto">
 			    <option value="0"><?php print _("No"); ?></option>
 			    <option value="1" <?php if(@$tag->showtag==1) { print "selected='selected'"; } ?>><?php print _("Yes"); ?></option>
-
 		    </select>
 		</td>
     </tr>
@@ -89,6 +88,17 @@ $(function(){
 		    <div class="input-group select-fgcolor">
 			    <input type="text" name="fgcolor" class="form-control input-sm"  value="<?php print @$tag->fgcolor; ?>"  maxlength='32' <?php if($_POST['action'] == "delete") print "readonly"; ?>><span class="input-group-addon"><i></i></span>
 		    </div>
+		</td>
+    </tr>
+
+	<!-- Compress -->
+	<tr>
+	    <td><?php print _('Compress range'); ?></td>
+	    <td>
+		    <select name="compress" class="form-control input-w-auto">
+			    <option value="No"><?php print _("No"); ?></option>
+			    <option value="Yes" <?php if(@$tag->compress=="Yes") { print "selected='selected'"; } ?>><?php print _("Yes"); ?></option>
+		    </select>
 		</td>
     </tr>
 

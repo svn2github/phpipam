@@ -9,7 +9,7 @@
  *	get all:		?controller=sections&action=read&all=true
  */
 
-class Sections
+class Sections_old
 {
 	/* variables */
 	private $_params;
@@ -22,52 +22,52 @@ class Sections
 	}
 
 
-	/** 
-	* create new section 
+	/**
+	* create new section
 	*/
-	public function createSections()
+	public function createSections_old()
 	{
 		/* not yet implemented */
-		throw new Exception('Action not yet implemented');	
+		throw new Exception('Action not yet implemented');
 	}
 
 
-	/** 
-	* read sections 
+	/**
+	* read sections
 	*/
-	public function readSections()
+	public function readSections_old()
 	{
 		//init section class
 		$section = new Section();
-		
+
 		//get all sections?
 		if($this->_params['all'])		{ $section->all	 = true; }
 		//get section by name
 		elseif($this->_params['name']) 	{ $section->name = $this->_params['name']; }
 		//get section by ID
 		else 							{ $section->id 	 = $this->_params['id'];	}
-		
+
 		//fetch results
-		$res = $section->readSection(); 
+		$res = $section->readSection();
 		//return section(s) in array format
 		return $res;
-	}	
-	
-	
-	/** 
-	* update existing section 
+	}
+
+
+	/**
+	* update existing section
 	*/
-	public function updateSections()
+	public function updateSections_old()
 	{
 		/* not yet implemented */
-		throw new Exception('Action not yet implemented');	
-	}	
-	
-	
-	/** 
-	* delete section 
+		throw new Exception('Action not yet implemented');
+	}
+
+
+	/**
+	* delete section
 	*/
-	public function deleteSections()
+	public function deleteSections_old()
 	{
 		//init section class
 		$section = new Section();
@@ -80,7 +80,7 @@ class Sections
 			else											{ $section->subnets = true; }
 		} else {
 															{ $section->subnets = true; }
-		}		
+		}
 		//delete also addresses?
 		if($section->subnets == true) {
 			if(isset($this->_params['addresses'])) {
@@ -88,13 +88,13 @@ class Sections
 				else										{ $section->addresses = true; }
 			} else {
 															{ $section->addresses = true; }
-			}				
+			}
 		}
 
 		//delete section
-		$res = $section->deleteSection(); 	
+		$res = $section->deleteSection();
 		//return result
-		return $res;		
+		return $res;
 	}
 }
 

@@ -116,8 +116,8 @@ $custom_fields = $Tools->fetch_custom_fields('users');
 	<td colspan="2"><h4><?php print _('Display settings'); ?></h4><hr></td>
 </tr>
 <tr>
-	<td><?php print _('DHCP compress'); ?></td>
-	<td><?php print $user->dhcpCompress==1 ? _("Yes") : _("No") ?></td>
+	<td><?php print _('compress override'); ?></td>
+	<td><?php print $user->compressOverride==1 ? _("Yes") : _("No") ?></td>
 </tr>
 <tr>
 	<td><?php print _('Hide free range'); ?></td>

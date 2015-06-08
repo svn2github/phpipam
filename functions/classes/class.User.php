@@ -951,9 +951,9 @@ class User {
 						"lang"=>$post['lang'],
 						"id"=>$this->user->id,
 						//display
-						"dhcpCompress"=>$this->verify_checkbox(@$_POST['dhcpCompress']),
-						"hideFreeRange"=>$this->verify_checkbox(@$_POST['hideFreeRange']),
-						"printLimit"=>@$_POST['printLimit']
+						"compressOverride"=>$post['compressOverride'],
+						"hideFreeRange"=>$this->verify_checkbox(@$post['hideFreeRange']),
+						"printLimit"=>@$post['printLimit']
 						);
 		if(strlen($post['password1'])>0) {
 		$items['password'] = $this->crypt_user_pass ($post['password1']);
