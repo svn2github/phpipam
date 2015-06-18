@@ -1,7 +1,7 @@
-phpIPAM API documentation v 1.16
-================================
+phpIPAM API documentation v 0.1
+===============================
 
-phpIPAM provides API server for providing data to clients. It is a webapp and can be called
+phpIPAM provides API server for providing data to clients. It is a webapp and can be called 
 via HTTP requests by providing appropriate GET parameters that define controller, actions and
 additional parameters required for each controller, such as id, name, etc.
 
@@ -9,21 +9,9 @@ Response is in JSON format with success true or false and provided error message
 
 You can find examples of client API calls in folder api/_examples/.
 
-Since version 1.16 API has 3 different security models:
-	* Crypt
-	* SSL
-	* None
-
-If security type is crypt client based request values can be encrypted with app_id and app_code.
-You first have to enable API module in phpipam administration and create an app_id and app_code,
-that will be used for external app with appropriate permissions. ApiCaller in included in
-_examples directory of phpipam.
-
-For SSL and none security models crypting is not used, only app_id is required to match app and
-permissions for it.
-
-For security set to none all information will be sent via clear text, use with caution in internal
-network, use of no security is HIGHLY discouraged, but might be needed in some cases.
+Client based request values must be encrypted with app_id and app_code. You first have to
+enable API module in phpipam administration and create an app_id and app_code, that will be 
+used for external app with appropriate permissions.
 
 
 Required php extensions for API server:
@@ -47,15 +35,15 @@ Available actions:
 	create
 	update
 	delete
-
-
+	
+	
 Output format for subnets and IP addresses
 ------------------------------------------
 	You can manually specify output format for subnets and IP addresses:
-
+	
 	format=decimal		returns in decimal form (default)
 	format=ip			returns in IP address
-
+	
 
 
 
@@ -69,22 +57,22 @@ Per-controller options and examples
 		all				returns all sections
 		id				returns section by id
 		name			returns section by name
-
+		
 		example: ?controller=sections&action=read&id=1
 
 	= create
 		not available
-
+		
 	= update
-		not available
-
+		not available	
+		
 	= delete
 		id				(mandatory) id of the section to be deleted
 		subnets			will delete also belonging subnets (default = true)
 		addresses		will delete also belonging ips (default = true)
 
 		example: ?controller=sections&action=delete&id=1
-
+		
 
 = Subnets
 ---------
@@ -93,9 +81,9 @@ Per-controller options and examples
 		id				returns subnet by id
 		sectionId		returns all subnets in specified sectionId
 		format			returns subnet in specified format
-
+		
 		example: ?controller=subnets&action=read&id=1
-
+		
 	= create
 		not available
 
@@ -107,17 +95,17 @@ Per-controller options and examples
 		addresses		will delete also belonging ips (default = true)
 
 		example: ?controller=addresses&action=delete&id=1
-
+		
 
 = IP addresses
---------------
+--------------		
 	= read
 		subnetId		returns all ip addresses in subnet
 		id				returns ip address details by id
 		format			returns ip in specified format
-
+		
 		example: ?controller=addresses&action=read&id=1
-
+		
 	= create
 		not available
 
@@ -125,20 +113,20 @@ Per-controller options and examples
 		not available
 
 	= delete
-		id				(mandatory)
+		id				(mandatory)	
 
 		example: ?controller=addresses&action=delete&id=1
-
-
+		
+		
 = Vlans
--------
+-------		
 	= read
 		all				returns all vlans
 		id				returns vlan details by id
 		subnets			return also ids of all attached subnets
-
+		
 		example: ?controller=vlans&action=read&id=1
-
+		
 	= create
 		not available
 
@@ -146,19 +134,19 @@ Per-controller options and examples
 		not available
 
 	= delete
-		id				(mandatory)
+		id				(mandatory)	
 
 		example: ?controller=vlans&action=delete&id=1
 
 = VRFs
--------
+-------		
 	= read
 		all				returns all vrfs
 		id				returns vrf details by id
 		subnets			return also ids of all attached subnets
-
+		
 		example: ?controller=vrfs&action=read&id=1
-
+		
 	= create
 		not available
 
@@ -166,6 +154,6 @@ Per-controller options and examples
 		not available
 
 	= delete
-		id				(mandatory)
+		id				(mandatory)	
 
 		example: ?controller=vrfs&action=delete&id=1

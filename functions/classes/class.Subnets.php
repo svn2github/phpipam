@@ -22,9 +22,9 @@ class Subnets {
 	/**
 	 * object holders
 	 */
-	protected $Net_IPv4;						//PEAR NET IPv4 object
-	protected $Net_IPv6;						//PEAR NET IPv6 object
-	protected $Result;						// for Result printing
+	protected $Net_IPv4;					//PEAR NET IPv4 object
+	protected $Net_IPv6;					//PEAR NET IPv6 object
+	public    $Result;						// for Result printing
 	protected $Database;					// for Database connection
 
 
@@ -184,6 +184,7 @@ class Subnets {
 		elseif($action=="edit")		{ return $this->subnet_edit ($values); }
 		elseif($action=="delete")	{ return $this->subnet_delete ($values['id']); }
 		elseif($action=="truncate")	{ return $this->subnet_truncate ($values['id']); }
+		elseif($action=="resize")	{ return $this->subnet_resize ($values['id'], $values['mask']); }
 		else						{ return $this->Result->show("danger", _("Invalid action"), true); }
 	}
 
@@ -205,8 +206,37 @@ class Subnets {
 			write_log( "Subnet creation", "Failed to add new subnet<hr>".$e->getMessage(), 2, $this->User->username);
 			return false;
 		}
+		# save id
+		$this->lastInsertId = $this->Database->lastInsertId();
 		# ok
 		write_log( "Subnet creation", "New subnet created<hr>".array_to_log($values), 0, $this->User->username);
+		return true;
+	}
+
+	/**
+	 * Edit subnet
+	 *
+	 *	needed for API only
+	 *
+	 * @access private
+	 * @param mixed $values
+	 * @return void
+	 */
+	private function subnet_edit ($values) {
+		# null empty values
+		$values = $this->reformat_empty_array_fields ($values, null);
+
+		# execute
+		try { $this->Database->updateObject("subnets", $values, "id"); }
+		catch (Exception $e) {
+			$this->Result->show("danger", _("Error: ").$e->getMessage(), false);
+			write_log( "Subnet edit", "Failed to edit subnet<hr>".$e->getMessage(), 2, $this->User->username);
+			return false;
+		}
+		# save ID
+		$this->lastInsertId = $this->Database->lastInsertId();
+		# ok
+		write_log( "Subnet edit", "Subnet edited<hr>".array_to_log($values), 0, $this->User->username);
 		return true;
 	}
 
@@ -255,6 +285,95 @@ class Subnets {
 			$this->Result->show("danger", _("Error: ").$e->getMessage(), true);
 		}
 		write_log( "Subnet truncate", "Subnet $old_subnet->name truncated", 0, $this->User->username);
+		return true;
+	}
+
+	/**
+	 * Resize subnet with new mask
+	 *
+	 * @access private
+	 * @param mixed $subnetId
+	 * @param mixed $mask
+	 * @return void
+	 */
+	private function subnet_resize ($subnetId, $mask) {
+		# save old values
+		$old_subnet = $this->fetch_subnet (null, $subnetId);
+		# execute
+		try { $this->Database->updateObject("subnets", array("id"=>$subnetId, "mask"=>$mask), "id"); }
+		catch (Exception $e) {
+			$this->Result->show("danger", _("Error: ").$e->getMessage(), false);
+			write_log( "Subnet edit", "Failed to resize subnet<hr>".$e->getMessage(), 2, $this->User->username);
+			return false;
+		}
+		# ok
+		write_log( "Subnet resize", "Subnet resized<hr>".array_to_log(array("id"=>$subnetId, "mask"=>$mask)), 0, $this->User->username);
+		return true;
+	}
+
+	/**
+	 * This function splits subnet into smaller subnets
+	 *
+	 * @access private
+	 * @param mixed $subnet_old
+	 * @param mixed $number
+	 * @param mixed $prefix
+	 * @param string $group (default: "yes")
+	 * @param string $strict (default: "yes")
+	 * @return void
+	 */
+	public function subnet_split ($subnet_old, $number, $prefix, $group="yes", $strict="yes") {
+
+		# we first need to check if it is ok to split subnet and get parameters
+		$check = $this->verify_subnet_split ($subnet_old, $number, $group, $strict);
+
+		# ok, extract parameters from result array - 0 is $newsubnets and 1 is $addresses
+		$newsubnets = $check[0];
+		$addresses  = $check[1];
+
+		# admin object
+		$Admin = new Admin ($this->Database, false);
+
+		# create new subnets and change subnetId for recalculated hosts
+		$m = 0;
+		foreach($newsubnets as $subnet) {
+			//set new subnet insert values
+			$values = array("description"=>strlen($prefix)>0 ? $prefix.($m+1) : "split_subnet_".($m+1),
+							"subnet"=>$subnet['subnet'],
+							"mask"=>$subnet['mask'],
+							"sectionId"=>$subnet['sectionId'],
+							"masterSubnetId"=>$subnet['masterSubnetId'],
+							"vlanId"=>@$subnet['vlanId'],
+							"vrfId"=>@$subnet['vrfId'],
+							"allowRequests"=>@$subnet['allowRequests'],
+							"showName"=>@$subnet['showName']
+							);
+			//create new subnets
+			$this->modify_subnet ("add", $values);
+
+			//get all address ids
+			unset($ids);
+			foreach($addresses as $ip) {
+				if($ip->subnetId == $m) {
+					$ids[] = $ip->id;
+				}
+			}
+
+			//replace all subnetIds in IP addresses to new subnet
+			if(isset($ids)) {
+				if(!$Admin->object_modify("ipaddresses", "edit-multiple", $ids, array("subnetId"=>$this->lastInsertId)))	{ $Result->show("danger", _("Failed to move IP address"), true); }
+			}
+
+			# next
+			$m++;
+		}
+
+		# do we need to remove old subnet?
+		if($group!="yes") {
+			if(!$Admin->object_modify("subnets", "delete", "id", array("id"=>$subnet_old->id)))								{ $Result->show("danger", _("Failed to remove old subnet"), true); }
+		}
+
+		# result
 		return true;
 	}
 
@@ -871,7 +990,7 @@ class Subnets {
 		# set initial vars
 		$out['used'] = (int) $used_hosts;														//set used hosts
 		$out['maxhosts'] = (int) $this->get_max_hosts ($netmask,$ipversion);					//get maximum hosts
-		$out['freehosts'] = gmp_strval(gmp_sub($out['maxhosts'],$out['used']));					//free hosts
+		$out['freehosts'] = (int) gmp_strval(gmp_sub($out['maxhosts'],$out['used']));					//free hosts
 		$out['freehosts_percent'] = round((($out['freehosts'] * 100) / $out['maxhosts']),2);	//free percentage
 		# result
 		return $out;
@@ -1488,6 +1607,227 @@ class Subnets {
 
 		//check
 		return $this->is_subnet_inside_subnet ($cidr, $this->transform_to_dotted ($master_details->subnet)."/".$master_details->mask);
+	}
+
+	/**
+	 * This function verifies subnet resizing
+	 *
+	 * @access public
+	 * @param mixed $subnet		//subnet in decimal or dotted address format
+	 * @param mixed $mask		//new subnet mask
+	 * @param mixed $subnetId	//subnet Id
+	 * @param mixed $vrfId		//vrfId
+	 * @param mixed $masterSubnetId	//master Subnet Id
+	 * @param mixed $mask_old	//old mask
+	 * @return void
+	 */
+	public function verify_subnet_resize ($subnet, $mask, $subnetId, $vrfId, $masterSubnetId, $mask_old) {
+	    # fetch section and set section ordering
+		$Sections = new Sections ($this->Database);
+	    $section  = $Sections->fetch_section (null, $sectionId);
+
+	    // subnet myst be in dotted format
+
+		# new mask must be > 8
+		if($mask < 8) 											{ $this->Result->show("danger", _('New mask must be at least /8').'!', true); }
+		if(!is_numeric($mask))									{ $this->Result->show("danger", _('Mask must be an integer').'!', true);; }
+
+		# verify new address
+		$verify = $this->verify_cidr_address($this->transform_address ($subnet, "dotted")."/".$mask);
+		if($verify!==true) 										{ $this->Result->show("danger", $verify, true); }
+
+		# same mask - ignore
+		if($mask==$mask_old) 									{ $this->Result->show("warning", _("New network is same as old network"), true); }
+		# if we are expanding network get new network address!
+		elseif($mask < $mask_old) {
+			//new subnet
+			$new_boundaries = $this->get_network_boundaries ($this->transform_address($subnet, "dotted"), $mask);
+			$subnet = $this->transform_address($new_boundaries['network'], "decimal");
+
+			//Checks for strict mode
+			if ($section->strictMode==1) {
+				//if it has parent make sure it is still within boundaries
+				if((int) $masterSubnetId>0) {
+					//if parent is folder check for other in same folder
+					$parent_subnet = $this->fetch_subnet(null, $masterSubnetId);
+					if($parent_subnet->isFolder!=1) {
+						//check that new is inside its master subnet
+						if(!$this->verify_subnet_nesting ($parent_subnet->id, $this->transform_to_dotted($subnet)."/".$mask)) {
+							$this->Result->show("danger", _("New subnet not in master subnet")."!", true);
+						}
+					}
+					//folder
+					else {
+						//fetch all folder subnets, remove old subnet and verify overlapping!
+						$folder_subnets = $this->fetch_subnet_slaves ($parent_subnet->id);
+						//check
+						if(sizeof(@$folder_subnets)>0) {
+							foreach($folder_subnets as $fs) {
+								//dont check against old
+								if($fs->id!=$subnetId) {
+									//verify that all nested are inside its parent
+									if($this->verify_overlapping ( $this->transform_to_dotted($subnet)."/".$mask, $this->transform_to_dotted($fs->subnet)."/".$fs->mask)) {
+										$this->Result->show("danger", _("Subnet overlapps with")." ".$this->transform_to_dotted($fs->subnet)."/".$fs->mask, true);
+									}
+								}
+							}
+						}
+					}
+				}
+				//root subnet, check overlapping !
+				else {
+					$section_subnets = $this->fetch_section_subnets ($section->id);
+					$overlap = $this->verify_subnet_resize_overlapping ($section->id, $this->transform_to_dotted($subnet)."/".$mask, $subnetId, $vrfId);
+					if($overlap!==false) {
+						$this->Result->show("danger", $overlap, true);
+					}
+				}
+			}
+		}
+		# we are shrinking subnet
+		else {
+			# addresses class
+			$Addresses = new Addresses ($this->Database);
+			// fetch all subnet addresses
+			$subnet_addresses = $Addresses->fetch_subnet_addresses ($subnetId, "ip_addr", "asc");
+
+			//check all IP addresses against new subnet
+			foreach($subnet_addresses as $ip) {
+				$Addresses->verify_address( $this->transform_to_dotted($ip->ip_addr), $this->transform_to_dotted($subnet)."/".$mask, false, true );
+			}
+			//Checks for strict mode
+			if ($section->strictMode==1) {
+				//if it has slaves make sure they are still inside network
+				if($this->has_slaves($subnetId)) {
+					//fetch slaves
+					$nested = $this->fetch_subnet_slaves ($subnetId);
+					foreach($nested as $nested_subnet) {
+						//if masks and subnets match they are same, error!
+						if($nested_subnet->subnet==$subnet && $nested_subnet->mask==$mask) {
+							$this->Result->show("danger", _("Subnet it same as ").$this->transform_to_dotted($nested_subnet->subnet)."/$nested_subnet->mask - $nested_subnet->description)", true);
+						}
+						//verify that all nested are inside its parent
+						if(!$this->is_subnet_inside_subnet ( $this->transform_to_dotted($nested_subnet->subnet)."/".$nested_subnet->mask, $this->transform_to_dotted($subnet)."/".$mask)) {
+							$this->Result->show("danger", _("Nested subnet out of new subnet")."!<br>(".$this->transform_to_dotted($nested_subnet->subnet)."/$nested_subnet->mask - $nested_subnet->description)", true);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Checks if it ok to split subnet
+	 *
+	 * @access private
+	 * @param mixed $subnet_old
+	 * @param mixed $number
+	 * @param string $group
+	 * @param string $strict
+	 * @return void
+	 */
+	private function verify_subnet_split ($subnet_old, $number, $group, $strict) {
+		# addresses class
+		$Addresses = new Addresses ($this->Database);
+
+		# get new mask - how much we need to add to old mask?
+		switch($number) {
+			case "2":   $mask_diff = 1; break;
+			case "4":   $mask_diff = 2; break;
+			case "8":   $mask_diff = 3; break;
+			case "16":  $mask_diff = 4; break;
+			case "32":  $mask_diff = 5; break;
+			case "64":  $mask_diff = 6; break;
+			case "128": $mask_diff = 7; break;
+			case "256": $mask_diff = 8; break;
+			//otherwise die
+			default:	$Result->show("danger", _("Invalid number of subnets"), true);
+		}
+		//set new mask
+		$mask = $subnet_old->mask + $mask_diff;
+		//set number of subnets
+		$number_of_subnets = pow(2,$mask_diff);
+		//set max hosts per new subnet
+		$max_hosts = $this->get_max_hosts ($mask, $this->identify_address($this->transform_to_dotted($subnet_old->subnet)), false);
+
+		# create array of new subnets based on number of subnets (number)
+		for($m=0; $m<$number_of_subnets; $m++) {
+			$newsubnets[$m] 		 = (array) $subnet_old;
+			$newsubnets[$m]['id']    = $m;
+			$newsubnets[$m]['mask']  = $mask;
+
+			// if group is selected rewrite the masterSubnetId!
+			if($group=="yes") {
+				$newsubnets[$m]['masterSubnetId'] = $subnet_old->id;
+			}
+			// recalculate subnet
+			if($m>0) {
+				$newsubnets[$m]['subnet'] = gmp_strval(gmp_add($newsubnets[$m-1]['subnet'], $max_hosts));
+			}
+		}
+
+		// recalculate old hosts to put it to right subnet
+		$addresses   = $Addresses->fetch_subnet_addresses ($subnet_old->id, "ip_addr", "asc");		# get all IP addresses
+		$subSize = sizeof($newsubnets);		# how many times to check
+		$n = 0;								# ip address count
+		// loop
+		foreach($addresses as $ip) {
+			//cast
+			$ip = (array) $ip;
+			# check to which it belongs
+			for($m=0; $m<$subSize; $m++) {
+
+				# check if between this and next - strict
+				if($strict == "yes") {
+					# check if last
+					if(($m+1) == $subSize) {
+						if($ip['ip_addr'] > $newsubnets[$m]['subnet']) {
+							$addresses[$n]->subnetId = $newsubnets[$m]['id'];
+						}
+					}
+					elseif( ($ip['ip_addr'] > $newsubnets[$m]['subnet']) && ($ip['ip_addr'] < @$newsubnets[$m+1]['subnet']) ) {
+						$addresses[$n]->subnetId = $newsubnets[$m]['id'];
+					}
+				}
+				# unstrict - permit network and broadcast
+				else {
+					# check if last
+					if(($m+1) == $subSize) {
+						if($ip['ip_addr'] >= $newsubnets[$m]['subnet']) {
+							$addresses[$n]->subnetId = $newsubnets[$m]['id'];
+						}
+					}
+					elseif( ($ip['ip_addr'] >= $newsubnets[$m]['subnet']) && ($ip['ip_addr'] < $newsubnets[$m+1]['subnet']) ) {
+						$addresses[$n]->subnetId = $newsubnets[$m]['id'];
+					}
+				}
+			}
+
+			# if subnetId is still the same save to error
+			if($addresses[$n]->subnetId == $subnet_old->id) {
+				$this->Result->show("danger", _('Wrong IP addresses (subnet or broadcast)').' - '.$this->transform_to_dotted($ip['ip_addr']), true);
+			}
+			# next IP address
+			$n++;
+		}
+
+		# check if new overlap (e.g. was added twice)
+		$nested_subnets = $this->fetch_subnet_slaves ($subnet_old->id);
+		if($nested_subnets!==false) {
+			//loop through all current slaves and check
+			foreach($nested_subnets as $nested_subnet) {
+				//check all new
+				foreach($newsubnets as $new_subnet) {
+					$new_subnet = (object) $new_subnet;
+					if($this->verify_overlapping ($this->transform_to_dotted($new_subnet->subnet)."/".$new_subnet->mask, $this->transform_to_dotted($nested_subnet->subnet)."/".$nested_subnet->mask)===true) {
+						$Result->show("danger", _("Subnet overlapping - ").$this->transform_to_dotted($new_subnet->subnet)."/".$new_subnet->mask." overlapps with ".$this->transform_to_dotted($nested_subnet->subnet)."/".$nested_subnet->mask, true);
+					}
+				}
+			}
+		}
+
+		# all good, return result array of newsubnets and addresses
+		return array(0=>$newsubnets, 1=>$addresses);
 	}
 
 	/**

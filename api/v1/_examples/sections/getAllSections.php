@@ -5,7 +5,7 @@
  *
  * In this example we will request all Sections
  *
- *	http://phpipam/api/client/getAllSections.php
+ *	http://phpipam/api/v1/client/getAllSections.php
  */
 
 # config

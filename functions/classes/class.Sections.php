@@ -8,12 +8,13 @@ class Sections  {
 
 	/* public variables */
 	public $sections;						//(array of objects) to store sections, section ID is array index
+	public $lastInsertId = null;			//id of last insert
 
 	/* protected variables */
 	protected $user = null;					//(object) for User profile
 
 	/* object holders */
-	protected $Result;						//for Result printing
+	public $Result;							//for Result printing
 	protected $Database;					//for Database connection
 
 
@@ -140,6 +141,8 @@ class Sections  {
 			write_log( "Sections creation", "Failed to create new section<hr>".$e->getMessage()."<hr>".array_to_log($values), 2, $this->user->username);
 			return false;
 		}
+		# save id
+		$this->lastInsertId = $this->Database->lastInsertId();
 		# write changelog
 		write_changelog('section', "delete", 'success', array(), $values);
 		# ok
@@ -266,11 +269,13 @@ class Sections  {
 	 * fetches all available sections
 	 *
 	 * @access public
+	 * @param string $order_by (default: "order")
+	 * @param bool $sort_asc (default: true)
 	 * @return void
 	 */
-	public function fetch_all_sections () {
+	public function fetch_all_sections ($order_by="order", $sort_asc=true) {
 		# fetch all
-		try { $sections = $this->Database->getObjects("sections", "order", true); }
+		try { $sections = $this->Database->getObjects("sections", $order_by, $sort_asc); }
 		catch (Exception $e) {
 			$this->Result->show("danger", _("Error: ").$e->getMessage());
 			return false;
@@ -288,10 +293,11 @@ class Sections  {
 	/**
 	 * Alias for fetch_all_sections
 	 *
-	 * @access public
+	 * @param string $order_by (default: "order")
+	 * @param bool $sort_asc (default: true)
 	 * @return void
 	 */
-	public function fetch_sections () {
+	public function fetch_sections ($order_by="order", $sort_asc=true) {
 		return $this->fetch_all_sections ();
 	}
 

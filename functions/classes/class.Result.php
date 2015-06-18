@@ -13,6 +13,9 @@
 
 class Result  {
 
+	/* exit methods - to override for api */
+	public $exit_method = "result";			//what to do when failed - result shows result, exception throws exception (for API)
+
 	/**
 	 * show result
 	 *
@@ -22,6 +25,11 @@ class Result  {
 	 * @return [type]          [description]
 	 */
 	public function show($uclass="muted", $utext="No value provided", $die=false, $popup=false) {
+
+		# override for api !
+		if($this->exit_method == "exception")  {
+			return $this->throw_exception ($utext);
+		}
 
 		# text
 		if(!is_array( $utext )) {}
@@ -78,6 +86,22 @@ class Result  {
 
 		# die if set
 		if($die)	die();
+	}
+
+	/**
+	 * Exists with exception
+	 *
+	 * @access public
+	 * @param mixed $content
+	 * @return void
+	 */
+	public function throw_exception ($content) {
+		// include Exceptions class for API
+		include_once( dirname(__FILE__) . '../../../api/v2/controllers/Exceptions.php' );
+		// initialize exceptions
+		$Exceptions = new Api_exceptions ();
+		// throw error
+		$Exceptions->throw_exception(500, $content);
 	}
 }
 

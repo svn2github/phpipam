@@ -5,11 +5,11 @@
  */
 
 # URL
-$url    = "http://devel.phpipam.net/api/";
+$url    = "http://devel.phpipam.net/api/v1/";
 
 # APPID and encryption key
-$app['id']	= "APP001";
-$app['enc']	= "bf9da2f8599a02824b2cf3cd3e3c0268";
+$app['id']	= "test345";
+$app['enc']	= "6fd985a8324fcf114d3fb46886ea46ef";
 
 # set response type - array, json
 $format		= "array";

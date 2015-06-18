@@ -23,7 +23,7 @@ class Addresses {
 	 */
 	protected $Net_IPv4;					//PEAR NET IPv4 object
 	protected $Net_IPv6;					//PEAR NET IPv6 object
-	protected $Result;						//for Result printing
+	public $Result;							//for Result printing
 	protected $Database;					//for Database connection
 	protected $Subnets;						//for Subnets object
 

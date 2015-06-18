@@ -22,7 +22,7 @@ class Admin  {
 	/**
 	 * object holders
 	 */
-	protected $Result;						//for Result printing
+	public	  $Result;						//for Result printing
 	protected $User;						//User object
 	protected $Database;					//for Database connection
 	protected $debugging = false;			//(bool) debugging flag

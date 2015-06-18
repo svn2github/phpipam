@@ -404,10 +404,12 @@ function long2ip6($ipv6long) {
 function array_to_log ($logs) {
 	$result = "";
 	# reformat
-    foreach($logs as $key=>$req) {
-    	# ignore __ and PHPSESSID
-    	if( (substr($key,0,2) == '__') || (substr($key,0,9) == 'PHPSESSID') || (substr($key,0,4) == 'pass') || $key=='plainpass' ) {}
-    	else 																  { $result .= " ". $key . ": " . $req . "<br>"; }
+	if(is_array($logs)) {
+	    foreach($logs as $key=>$req) {
+	    	# ignore __ and PHPSESSID
+	    	if( (substr($key,0,2) == '__') || (substr($key,0,9) == 'PHPSESSID') || (substr($key,0,4) == 'pass') || $key=='plainpass' ) {}
+	    	else 																  { $result .= " ". $key . ": " . $req . "<br>"; }
+		}
 	}
 	return $result;
 }

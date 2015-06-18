@@ -8,7 +8,7 @@
  *	get by id: 			?controller=addresses&action=read&id=123
  */
 
-class Addresses_old
+class Addresses
 {
 	/* variables */
 	private $_params;
@@ -20,43 +20,43 @@ class Addresses_old
 	  $this->_params = $params;
 	}
 
-	/**
-	* read addresses
+	/** 
+	* read addresses 
 	*/
-	public function readAddresses_old()
+	public function readAddresses()
 	{
 		# init section class
 		$address = new Address ();
-
+		
 		# set method
 		if(isset($this->_params['format'])) { $address->format = $this->_params['format']; }
-
+		
 		# get all ips in subnet?
 		if($this->_params['subnetId'])	{ $address->subnetId = $this->_params['subnetId']; }
 		# get ip by Id
 		elseif($this->_params['id']) 	{ $address->id = $this->_params['id']; }
 		# false
 		else 							{  }
-
+		
 		# fetch results
-		$res = $address->readAddress();
+		$res = $address->readAddress(); 
 		# return result
 		return $res;
 	}
 
 
-	/**
-	* delete addresses
+	/** 
+	* delete addresses 
 	*/
-	public function deleteAddresses_old()
+	public function deleteAddresses()
 	{
 		# init section class
 		$address = new Address ();
 		# set Id
 		if($this->_params['id']) 		{ $address->id = $this->_params['id']; }
-
+		
 		# fetch results
-		$res = $address->deleteAddress();
+		$res = $address->deleteAddress(); 
 		# return result
 		return $res;
 	}

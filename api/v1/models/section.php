@@ -1,10 +1,10 @@
 <?php
 
 /**
- *	phpIPAM Subnet class
+ *	phpIPAM Section class
  */
 
-class Subnet
+class Section
 {
 	# variables
 	var $query;				// db query
@@ -22,7 +22,7 @@ class Subnet
 	public function __construct()
 	{
 		# initialize database class
-		require( dirname(__FILE__) . '/../../config.php' );
+		require( dirname(__FILE__) . '/../../../config.php' );
 		$this->Database = new database($db['host'], $db['user'], $db['pass'], $db['name'], NULL, false);
 		# common class
 		$this->Common = new Common;
@@ -52,33 +52,33 @@ class Subnet
 
 
 	/**
-	 * 	get Subnet
+	 * 	get Section
 	 */
-	public function readSubnet()
+	public function readSection()
 	{
 		/* check input */
 		$this->Common->check_input;
 
-		/* all subnets */
-		if($this->all) {
+		/* section by id */
+		if($this->id) {
 			//set query
-			$this->query = "select * from `subnets`;";
+			$this->query = "select * from `sections` where `id` = ".$this->id.";";
 			$this->fetchArray();
-			if(sizeof($this->result)==0) 										{ throw new Exception('No subnets available'); }
+			if(sizeof($this->result)==0) 										{ throw new Exception('Invalid section Id '.$this->id); }
 		}
-		/* subnet by id */
-		elseif($this->id) {
+		/* all sections  */
+		elseif($this->all) {
 			//set query
-			$this->query = "select * from `subnets` where `id` = ".$this->id.";";
+			$this->query = "select * from `sections`;";
 			$this->fetchArray();
-			if(sizeof($this->result)==0) 										{ throw new Exception('Invalid subnet Id '.$this->id); }
+			if(sizeof($this->result)==0) 										{ throw new Exception('No sections configured'); }
 		}
-		/* all subnets in section */
-		elseif($this->sectionId) {
+		/* section by name */
+		elseif($this->name) {
 			//set query
-			$this->query = "select * from `subnets` where `sectionId` = ".$this->sectionId.";";
+			$this->query = "select * from `sections` where `name` = ".$this->name.";";
 			$this->fetchArray();
-			if(sizeof($this->result)==0) 										{ throw new Exception('Invalid section Id or no subnets '.$this->sectionId); }
+			if(sizeof($this->result)==0) 										{ throw new Exception('Invalid section name '.$this->name); }
 		}
 		/* method missing */
 		else 																	{ throw new Exception('Selector missing'); }
@@ -95,55 +95,54 @@ class Subnet
 
 
 	/**
-	 *	delete Subnet
+	 *	delete Section
 	 *		id must be provided
 	 *
-	 *		we must also delete all IP addresses if requested!
+	 *		we must also delete all subnets and all IP addresses!
 	 */
-	public function deleteSubnet ()
+	public function deleteSection ()
 	{
 		//check input
 		$this->Common->check_var ("int", $this->id, null);
 
 		//verify that it exists
-		try { $this->readSubnet(); }
+		try { $this->readSection(); }
 		catch (Exception $e) 													{ throw new Exception($e->getMessage()); }
 
-		# we need address class to delete IPs!
-		if($this->addresses) {
-			$Address = new Address;
+		//do we need to delete also subnets?
+		if($this->subnets) {
+			$Subnet = new Subnet;
 
-			//fetch and delete all ips in subnet
-			$Address->subnetId = $this->id;			//provide subnetis
-			try { $addresses = $Address->readAddress(); }
-			catch (Exception $e) 												{
-				//if empty it is ok!
-				if($e->getMessage()=="No addresses") 							{  }
+			# get all belonging subnets
+			$Subnet->sectionId = $this->id;
+			$Subnet->addresses = $this->addresses;					//flag to delete also IPs
+
+			try { $allsubnets = $Subnet->readSubnet(); }
+			catch (Exception $e) {
+				# empty?
+				if(substr($e->getMessage(), 0, 32)=="Invalid section Id or no subnets")	{}
 				else															{ throw new Exception($e->getMessage()); }
 			}
 
-			//delete all Ips
-			if(sizeof($addresses)>0) {
-				foreach($addresses as $a) {
-					$Address->id = $a['id'];			//provide id
-					//delete
-					try { $addresses = $Address->deleteAddress(); }
-					catch (Exception $e) 										{ throw new Exception($e->getMessage()); }
-
+			# loop
+			if(sizeof($allsubnets)>0) {
+				foreach($allsubnets as $s) {
+					# provide id and parameters
+					$Subnet->id = $s['id'];
+					$Subnet->deleteSubnet();
 				}
 			}
 		}
 
-		//set query to delete subnet and execute
-		$this->query = "delete from `subnets` where `id` = ".$this->id.";";
+		//set query and execute
+		$this->query = "delete from `sections` where `id` = ".$this->id.";";
 		$this->executeQuery();
 
 		//set result
 		$result['result']   = "success";
-		$result['response'] = "subnet id ".$this->id." deleted successfully!";
+		$result['response'] = "section ".$this->id." deleted successfully!";
 
 		//return result
 		return $result;
 	}
-
 }
