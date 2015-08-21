@@ -66,6 +66,38 @@ $rowSpan = 10 + sizeof($custom_fields);
 		?>
 		</td>
 	</tr>
+	
+	<!-- nameservers -->
+		<tr>
+		<th><?php print _('Nameservers'); ?></th>
+		<td>
+		<?php
+		
+		// Only show nameservers if defined for subnet
+		if(!empty($subnet['nameserverId'])) {
+			# fetch recursive nameserver details
+			$nameservers = (array) $Tools->fetch_object("nameservers", "id", $subnet['nameserverId']);
+			
+			print $nameservers['namesrv1'];
+		
+			// Print secondary and tertiery nameserver if defined)
+			if(!empty($nameservers['namesrv2'])) {print ' , '.$nameservers['namesrv2']; }
+			if(!empty($nameservers['namesrv3'])) {print ' , '.$nameservers['namesrv3']; }
+			
+			//Print name of nameserver group
+			print ' ('.$nameservers['name'].')';				
+		
+			}
+			
+		else {
+			print "<span class='text-muted'>-</span>";
+			}
+		
+		?>
+		</td>
+	</tr>
+	
+	
 
 	<?php
 	# VRF
@@ -85,8 +117,7 @@ $rowSpan = 10 + sizeof($custom_fields);
 	if(!$slaves) {
 		# divider
 		print "<tr>";
-		print "	<th><hr></th>";
-		print "	<td></td>";
+		print "	<td colspan='2'><hr></td>";
 		print "</tr>";
 
 		# Are IP requests allowed?
@@ -110,6 +141,64 @@ $rowSpan = 10 + sizeof($custom_fields);
 		else 										{ print "	<td class='info2'>"._('disabled')."</td>";}		# no
 		print "</tr>";
 	}
+
+	# autocreate PTR records
+	if($User->settings->enablePowerDNS==1) {
+		if ($subnet['DNSrecursive'] == 1) {
+		# powerDNS class
+		$PowerDNS = new PowerDNS ($Database);
+		if($PowerDNS->db_check()!==false) {
+			// set name
+			$zone = $PowerDNS->get_ptr_zone_name ($subnet['ip'], $subnet['mask']);
+			// fetch domain
+			$domain = $PowerDNS->fetch_domain_by_name ($zone);
+			// count PTR records
+			if ($domain!==false) {
+				if ($User->is_admin ()) {
+				$btns[] = "<div class='btn-group'>";
+				$btns[] = " <a class='btn btn-default btn-xs' href='". create_link ("administration", "powerDNS", "domains", "records", $domain->name)."'><i class='fa fa-eye'></i></a>";
+				$btns[] = "	<a class='btn btn-default btn-xs refreshPTRsubnet' data-subnetid='$subnet[id]'><i class='fa fa-refresh'></i></a>";
+				$btns[] = "</div>";
+				$btns = implode("\n", $btns);
+				}
+				else {
+				$btns = "";
+				}
+
+				$zone = "<span class='text-muted'>(domain $zone)</span> <span class='badge'>".$PowerDNS->count_domain_records_by_type ($domain->id, "PTR")." records</span>";
+			}
+			else {
+				if ($User->is_admin ()) {
+				$btns[] = "<div class='btn-group'>";
+				$btns[] = "	<a class='btn btn-default btn-xs refreshPTRsubnet' data-subnetid='$subnet[id]'><i class='fa fa-refresh'></i></a>";
+				$btns[] = "</div>";
+				$btns = implode("\n", $btns);
+				}
+
+				$zone = "<span class='badge alert-danger'>Zone $zone missing</span>";
+			}
+		}
+		else {
+			$zone = "<span class='badge alert-danger'>Cannot connect to powerDNS database!</span>";
+		}
+		}
+		# divider
+		print "<tr>";
+		print "	<td colspan='2'><hr></td>";
+		print "</tr>";
+
+		print "<tr>";
+		print "	<th>"._('Autocreate reverse records')."</th>";
+		if($subnet['DNSrecursive'] == 1) 			{ print "	<td>"._('enabled')." $btns $zone</td>"; }		# yes
+		else 										{ print "	<td class='info2'>"._('disabled')."</td>";}		# no
+		print "</tr>";
+		print "<tr>";
+		print "	<th>"._('Show DNS records')."</th>";
+		if($subnet['DNSrecords'] == 1) 				{ print "	<td>"._('enabled')."</td>"; }		# yes
+		else 										{ print "	<td class='info2'>"._('disabled')."</td>";}		# no
+		print "</tr>";
+	}
+
 	?>
 
 	<?php

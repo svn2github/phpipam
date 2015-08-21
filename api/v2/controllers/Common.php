@@ -5,7 +5,7 @@
  *
  *
  */
-class Common_functions {
+class Common_api_functions {
 
 	/**
 	 * Initializes new Object.
@@ -500,13 +500,23 @@ class Common_functions {
 	 * @param mixed $controller (default: null)
 	 * @return void
 	 */
-	protected function remap_keys ($result  = null, $controller) {
+<<<<<<< HEAD
+	protected function remap_keys ($result  = null, $controller = null) {
+=======
+	protected function remap_keys ($result = null, $controller = null) {
+>>>>>>> master
 		// define keys array
-		$this->keys = array("switch"=>"deviceId", "state"=>"tag", "ip_addr"=>"ip", "dns_name"=>"hostname", "tid"=>"id");
+		$this->keys = array("switch"=>"deviceId", "state"=>"tag", "ip_addr"=>"ip", "dns_name"=>"hostname");
 
 		// exceptions
+<<<<<<< HEAD
 		if($controller=="vlans") { $this->keys['vlanId'] = "id"; }
 		if($controller=="vrfs")  { $this->keys['vrfId'] = "id"; }
+=======
+		if($controller=="vlans") 		{ $this->keys['vlanId'] = "id"; }
+		if($controller=="vrfs")  		{ $this->keys['vrfId'] = "id"; }
+>>>>>>> master
+		if($this->_params->controller=="tools" && $this->_params->id=="deviceTypes")  { $this->keys['tid'] = "id"; }
 
 		// POST / PATCH
 		if ($_SERVER['REQUEST_METHOD']=="POST" || $_SERVER['REQUEST_METHOD']=="PATCH")		{ return $this->remap_update_keys (); }

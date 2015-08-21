@@ -32,6 +32,8 @@ CREATE TABLE `ipaddresses` (
   `note` text,
   `lastSeen` DATETIME  NULL  DEFAULT '0000-00-00 00:00:00',
   `excludePing` BINARY  NULL  DEFAULT '0',
+  `PTRignore` BINARY  NULL  DEFAULT '0',
+  `PTR` INT(11)  UNSIGNED  NULL  DEFAULT '0',
   `editDate` TIMESTAMP  NULL  ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `subnetid` (`subnetId`)
@@ -103,6 +105,7 @@ CREATE TABLE `sections` (
   `editDate` TIMESTAMP  NULL  ON UPDATE CURRENT_TIMESTAMP,
   `showVLAN` BOOL  NOT NULL  DEFAULT '0',
   `showVRF` BOOL  NOT NULL  DEFAULT '0',
+  `showNameservers` BOOL NOT NULL DEFAULT '0',
   `DNS` VARCHAR(128)  NULL  DEFAULT NULL,
   PRIMARY KEY (`name`),
   UNIQUE KEY `id_2` (`id`),
@@ -158,6 +161,7 @@ CREATE TABLE `settings` (
   `authmigrated` TINYINT  NOT NULL  DEFAULT '0',
   `tempShare` TINYINT(1)  NULL  DEFAULT '0',
   `tempAccess` TEXT  NULL,
+  `log` SET('Database','syslog')  NOT NULL  DEFAULT 'Database',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /* insert default values */
@@ -227,10 +231,13 @@ CREATE TABLE `subnets` (
   `allowRequests` tinyint(1) DEFAULT '0',
   `vlanId` INT(11)  UNSIGNED  NULL  DEFAULT NULL,
   `showName` tinyint(1) DEFAULT '0',
+  `device` INT  UNSIGNED  NULL  DEFAULT '0',
   `permissions` varchar(1024) DEFAULT NULL,
   `pingSubnet` BOOL NULL  DEFAULT '0',
   `discoverSubnet` BINARY(1)  NULL  DEFAULT '0',
   `DNSrecursive` TINYINT(1)  NULL  DEFAULT '0',
+  `DNSrecords` TINYINT(1)  NULL  DEFAULT '0',
+  `nameserverId` INT(11) NULL DEFAULT '0',
   `scanAgent` INT(11)  DEFAULT NULL,
   `isFolder` BOOL NULL  DEFAULT '0',
   `isFull` TINYINT(1)  NULL  DEFAULT '0',
@@ -400,6 +407,28 @@ CREATE TABLE `vrf` (
   PRIMARY KEY (`vrfId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+# Dump of table nameservers
+# ------------------------------------------------------------
+DROP TABLE IF EXISTS `nameservers`;
+
+CREATE TABLE `nameservers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `namesrv1` varchar(255) DEFAULT NULL,
+  `namesrv2` varchar(255) DEFAULT NULL,
+  `namesrv3` varchar(255) DEFAULT NULL,
+  `description` text,
+  `permissions` varchar(128) DEFAULT NULL,
+  `editDate` TIMESTAMP  NULL  ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/* insert default values */
+INSERT INTO `nameservers` (`name`, `namesrv1`, `namesrv2`, `description`)
+VALUES
+	('Global', '10.10.10.10', '10.10.11.12', ''),
+	('DMZ1', '192.168.100.10', '192.168.11.12', 'Nameservers used by DMZ servers');
+
+
 
 # Dump of table api
 # ------------------------------------------------------------
@@ -552,4 +581,4 @@ VALUES
 
 # update version
 # ------------------------------------------------------------
-UPDATE `settings` set `version` = '1.17';
+UPDATE `settings` set `version` = '1.18';
