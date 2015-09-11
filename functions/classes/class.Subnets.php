@@ -1872,21 +1872,22 @@ class Subnets extends Common_functions {
 	public function check_permission ($user, $subnetId) {
 
 		# get all user groups
-		$groups = json_decode($user->groups);
+		$groups = json_decode($user->groups, true);
 
 		# if user is admin then return 3, otherwise check
 		if($user->role == "Administrator")	{ return 3; }
 
 		# set subnet permissions
 		$subnet  = $this->fetch_subnet ("id", $subnetId);
+		if($subnet===false)	return 0;
 		//null?
-		if(is_null(@$subnet->permissions) || $subnet->permissions=="null")	return 0;
+		if(is_null($subnet->permissions) || $subnet->permissions=="null")	return 0;
 		$subnetP = json_decode(@$subnet->permissions);
 
 		# set section permissions
 		$Section = new Sections ($this->Database);
-		$section = $Section->fetch_section ("id", @$subnet->sectionId);
-		$sectionP = json_decode(@$section->permissions);
+		$section = $Section->fetch_section ("id", $subnet->sectionId);
+		$sectionP = json_decode($section->permissions);
 
 		# default permission
 		$out = 0;
@@ -2526,7 +2527,7 @@ class Subnets extends Common_functions {
 		foreach($section_subnets as $s) {
 			// folders array
 			if($s->isFolder==1)	{ $children_folders[$s->masterSubnetId][] = (array) $s; }
-			// all subnets, includin folders
+			// all subnets, including folders
 			$children_subnets[$s->masterSubnetId][] = (array) $s;
 		}
 
@@ -2611,8 +2612,9 @@ class Subnets extends Common_functions {
 			}
 			// folder - disabled
 			elseif ($option['value']['isFolder']==1) {
-				if($option['value']['id'] == $current_master) 	{ $html[] = "<option value='".$option['value']['id']."' selected='selected' disabled>$repeat ".$option['value']['description']."</option>"; }
-				else 											{ $html[] = "<option value='".$option['value']['id']."'					    disabled>$repeat ".$option['value']['description']."</option>"; }
+				$html[] = "<option value=''	 disabled>$repeat ".$option['value']['description']."</option>";
+				//if($option['value']['id'] == $current_master) { $html[] = "<option value='' selected='selected' disabled>$repeat ".$option['value']['description']."</option>"; }
+				//else 											{ $html[] = "<option value=''					    disabled>$repeat ".$option['value']['description']."</option>"; }
 
 			}
 
