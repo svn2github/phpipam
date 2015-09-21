@@ -129,6 +129,7 @@ CREATE TABLE `settings` (
   `siteAdminMail` varchar(64) DEFAULT NULL,
   `siteDomain` varchar(32) DEFAULT NULL,
   `siteURL` varchar(64) DEFAULT NULL,
+  `siteLoginText` varchar(128) DEFAULT NULL,
   `domainAuth` tinyint(1) DEFAULT NULL,
   `enableIPrequests` tinyint(1) DEFAULT NULL,
   `enableVRF` tinyint(1) DEFAULT '1',
@@ -304,7 +305,7 @@ DROP TABLE IF EXISTS `users`;
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(20) CHARACTER SET utf8 NOT NULL DEFAULT '',
+  `username` varchar(25) CHARACTER SET utf8 NOT NULL DEFAULT '',
   `authMethod` INT(2)  NULL  DEFAULT 1,
   `password` CHAR(128)  COLLATE utf8_bin DEFAULT NULL,
   `groups` varchar(1024) COLLATE utf8_bin DEFAULT NULL,
@@ -539,7 +540,7 @@ DROP TABLE IF EXISTS `usersAuthMethod`;
 
 CREATE TABLE `usersAuthMethod` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `type` set('local','AD','LDAP', 'Radius') NOT NULL DEFAULT 'local',
+  `type` set('local','AD','LDAP','NetIQ', 'Radius') NOT NULL DEFAULT 'local',
   `params` varchar(1024) DEFAULT NULL,
   `protected` set('Yes','No') NOT NULL DEFAULT 'Yes',
   `description` text,

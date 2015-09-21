@@ -2630,3 +2630,29 @@ msgstr ""
 msgid "Syslog files are sent to syslog"
 msgstr ""
 
+msgid "Number of discovered hosts exceed maximum possible defined by php.ini - set to"
+msgstr ""
+
+msgid "Please adjust your php.ini settings for value `max_input_vars`"
+msgstr ""
+
+msgid "For AD/LDAP/NetIQ connection phpipam is using adLDAP, for documentation please check "
+msgstr ""
+
+msgid "Search domain groups"
+msgstr ""
+
+msgid "Add group"
+msgstr ""
+
+msgid "Select"
+msgstr ""
+
+msgid "No members"
+msgstr ""
+
+msgid "Group already exists"
+msgstr ""
+
+
+
