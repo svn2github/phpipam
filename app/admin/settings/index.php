@@ -1,5 +1,3 @@
-<link rel="stylesheet" type="text/css" href="css/bootstrap/bootstrap-switch.min.css">
-<script type="text/javascript" src="js/bootstrap-switch.min.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
 	/* bootstrap switch */
@@ -221,6 +219,17 @@ $settings = (array) $User->settings;
 	</td>
 	<td class="info2">
 		<?php print _('Enable or disable PowerDNS module'); ?>
+	</td>
+</tr>
+
+<!-- firewall zone management -->
+<tr>
+	<td class="title"><?php print _('Enable Firewall Zones'); ?></td>
+	<td>
+		<input type="checkbox" class="input-switch" value="1" name="enableFirewallZones" <?php if($settings['enableFirewallZones'] == 1) print 'checked'; ?>>
+	</td>
+	<td class="info2">
+		<?php print _('Enable or disable firewall zone management module'); ?>
 	</td>
 </tr>
 
