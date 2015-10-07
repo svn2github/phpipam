@@ -1168,9 +1168,6 @@ class Tools extends Common_functions {
 
 		# initialize mailer
 		$this->get_settings ();
-		if (!class_exists(phpipam_mail)) {
-			require( dirname(__FILE__) . '/class.Mail.php' );
-		}
 		$phpipam_mail = new phpipam_mail($this->settings, $mail_settings);
 		$phpipam_mail->initialize_mailer();
 
@@ -1450,7 +1447,7 @@ class Tools extends Common_functions {
 	 * @return void
 	 */
 	public function get_table_fix ($table) {
-		$res = fopen(dirname(__FILE__) . "/../db/SCHEMA.sql", "r");
+		$res = fopen(dirname(__FILE__) . "/../../db/SCHEMA.sql", "r");
 		$file = fread($res, 100000);
 
 		//go from delimiter on
@@ -1753,7 +1750,8 @@ class Tools extends Common_functions {
         }
 
         # /min / max hosts
-        $maxIp = gmp_strval( gmp_add(gmp_pow(2, 128 - $mask),$Result->ip2long6 ($subnet)));
+        $maxIp = gmp_strval(gmp_add(gmp_pow(2, 128 - $mask),$this->ip2long6 ($subnet)));
+		$maxIp = gmp_strval(gmp_sub($maxIp, 1));
 
         $out['Min host IP']               = $subnet;
         $out['Max host IP']               = $this->long2ip6 ($maxIp);

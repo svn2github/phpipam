@@ -20,7 +20,7 @@ $rowSpan = 10 + sizeof($custom_fields);
 	<tr>
 		<th><?php print _('Hierarchy'); ?></th>
 		<td>
-			<?php print_breadcrumbs($Sections, $Subnets, $_GET); ?>
+			<?php $Subnets->print_breadcrumbs($Sections, $Subnets, $_GET); ?>
 		</td>
 	</tr>
 	<tr>
@@ -150,6 +150,25 @@ $rowSpan = 10 + sizeof($custom_fields);
 			else 									{ print "	<td class='info2'>"._('disabled')."</td>";}		# no
 			print "</tr>";
 		}
+
+		# divider
+		print "<tr>";
+		print "	<td colspan='2'><hr></td>";
+		print "</tr>";
+
+		# agent
+		if ($subnet['pingSubnet']==1 || $subnet['discoverSubnet']==1) {
+		print "<tr>";
+		print "	<th>"._('Scan agent')."</th>";
+		print "	<td>";
+		// fetch
+		$agent = $Tools->fetch_object ("scanAgents", "id", $subnet['scanAgent']);
+		if ($agent===false)		{ print _("Invalid scan agent"); }
+		else					{ print "<strong>".$agent->name ."</strong> (".$agent->description.")"; }
+		print "	</td>";
+		print "</tr>";
+		}
+
 		# ping-check hosts inside subnet
 		print "<tr>";
 		print "	<th>"._('Hosts check')."</th>";

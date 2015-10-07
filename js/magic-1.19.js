@@ -685,7 +685,8 @@ $(document).on("click", "button#requestIPAddressSubmit", function() {
     var request = $('form#requestIP').serialize();
     $.post('app/login/request_ip_result.php', request, function(data) {
         $('div#requestIPresult').html(data).slideDown('fast');
-        hideSpinner();
+        if(data.search("alert-danger") == -1)   { setTimeout(function (){window.location.reload();}, 1500); }
+        else                             { hideSpinner(); }
     }).fail(function(jqxhr, textStatus, errorThrown) { showError(jqxhr.statusText + "<br>Status: " + textStatus + "<br>Error: "+errorThrown); });
     return false;
 });
@@ -1671,7 +1672,12 @@ $(document).on("change", "select#selectSectionfromIPCalc", function() {
     var sectionId = $(this).val();
     var subnet      = $('table.ipCalcResult td#sub2').html();
     var bitmask      = $('table.ipCalcResult td#sub4').html();
-    var postdata  = "sectionId=" + sectionId + "&subnet=" + subnet + "&bitmask=" + bitmask + "&action=add&location=ipcalc";
+    // ipv6 override
+    if ($("table.ipCalcResult td#sub0").html() == "IPv6") {
+    	var postdata  = "sectionId=" + sectionId + "&subnet=" + $('table.ipCalcResult td#sub3').html() + "&bitmask=&action=add&location=ipcalc";
+    } else {
+	    var postdata  = "sectionId=" + sectionId + "&subnet=" + subnet + "&bitmask=" + bitmask + "&action=add&location=ipcalc";
+    }
     //make section active
     $('table.newSections ul#sections li#' + sectionId ).addClass('active');
     //load add Subnet form / popup
@@ -1901,10 +1907,22 @@ $(document).on("click", "#add_nameserver", function() {
 	//get old number
 	var num = $(this).attr("data-id");
 	// append
-	$('table#nameserverManagementEdit2 tbody#nameservers').append("<tr id='namesrv-"+num+"'><td>Nameserver "+num+"</td><td><input type='text' class='rd form-control input-sm' name='namesrv-"+num+"'></td></tr>");
+	$('table#nameserverManagementEdit2 tbody#nameservers').append("<tr id='namesrv-"+num+"'><td>Nameserver "+num+"</td><td><input type='text' class='rd form-control input-sm' name='namesrv-"+num+"'></input><td><button class='btn btn-sm btn-default' id='remove_nameserver' data-id='namesrv-"+num+"'><i class='fa fa-trash-o'></i></buttom></td></td></tr>");
 	// add number
 	num++;
 	$(this).attr("data-id", num);
+
+	hideSpinner();
+	return false;
+});
+// remove
+$(document).on("click", "#remove_nameserver", function() {
+	showSpinner();
+	//get old number
+	var id = $(this).attr("data-id");
+	// append
+	var el = document.getElementById(id);
+	el.parentNode.removeChild(el);
 
 	hideSpinner();
 	return false;
@@ -2157,6 +2175,29 @@ $(document).on('click', "#regApiKey", function() {
 	showSpinner();
     $.post('app/admin/api/generate-key.php', function(data) {
         $('input#appcode').val(data);
+        hideSpinner();
+    }).fail(function(jqxhr, textStatus, errorThrown) { showError(jqxhr.statusText + "<br>Status: " + textStatus + "<br>Error: "+errorThrown); });
+    return false;
+});
+
+
+
+
+/* agents
+*********/
+//load edit form
+$('.editAgent').click(function() {
+	open_popup("700", "app/admin/scan-agents/edit.php", {id:$(this).attr('data-id'), action:$(this).attr('data-action')} );
+});
+//submit form
+$(document).on("click", "#agentEditSubmit", function() {
+    submit_popup_data (".agentEditResult", "app/admin/scan-agents/edit-result.php", $('form#agentEdit').serialize());
+});
+//regenerate agent key
+$(document).on('click', "#regAgentKey", function() {
+	showSpinner();
+    $.post('app/admin/api/generate-key.php', function(data) {
+        $('input[name=code]').val(data);
         hideSpinner();
     }).fail(function(jqxhr, textStatus, errorThrown) { showError(jqxhr.statusText + "<br>Status: " + textStatus + "<br>Error: "+errorThrown); });
     return false;

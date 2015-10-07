@@ -47,7 +47,7 @@ class Logging extends Common_functions {
   		$this->log_username = @$_SESSION['ipamusername'];
 
 		# settings
-		$this->settings = $settings===null ? $this->get_settings () : (object) $settings;
+		$this->settings = $settings===null || $settings===false ? $this->get_settings () : (object) $settings;
 		# debugging
 		$this->set_debugging();
 		# set log type
@@ -457,6 +457,9 @@ class Logging extends Common_functions {
 				$log = $this->changelog_format_permission_change ();
 			}
 
+			# reformat null values
+			$log =str_replace(": <br>", ": / <br>", $log);
+
 			//if change happened write it!
 			if(isset($log) && sizeof($log)>0) {
 				// execute
@@ -483,6 +486,9 @@ class Logging extends Common_functions {
 		$changelog = str_replace("<br>", "\r\n", $this->array_to_log ($changelog, true));
 		# fetch user id
 		$this->get_active_user_id ();
+
+		# null and from cli, set admin user
+		if ($this->user===null && php_sapi_name()=="cli") { $this->user_id = 1; }
 
 		# set update id based on action
 		if ($this->object_action=="add")	{ $obj_id = $this->object_new['id']; }
@@ -580,7 +586,7 @@ class Logging extends Common_functions {
 				$v = $this->changelog_make_booleans ($k, $v);
 				//set log
 				if ($k!=="id")
-				$log["[$k]"] = $this->object_old[$k]." => $v";
+				$log["$k"] = $this->object_old[$k]." => $v";
 			}
 		}
 		// result
@@ -604,6 +610,18 @@ class Logging extends Common_functions {
 					$this->object_new['start'],
 					$this->object_new['stop']
 					);
+			unset(	$this->object_old['subnet'],
+					$this->object_old['type'],
+					$this->object_old['section'],
+					$this->object_old['ip_addr_old'],
+					$this->object_old['nostrict'],
+					$this->object_old['start'],
+					$this->object_old['stop']
+					);
+			# reformat ip
+			if (isset($this->object_old['ip_addr']))	{ $this->object_old['ip_addr'] = $this->Subnets->transform_address ($this->object_old['ip_addr'],"dotted"); }
+			if (isset($this->object_new['ip_addr']))	{ $this->object_new['ip_addr'] = $this->Subnets->transform_address ($this->object_new['ip_addr'],"dotted"); }
+
 		}
 		# remove subnet fields
 		elseif($this->object_type == "subnet")	{
@@ -615,6 +633,14 @@ class Logging extends Common_functions {
 					$this->object_new['state'],
 					$this->object_new['sectionId'],
 					$this->object_new['ip']
+				);
+			unset(	$this->object_old['subnetId'],
+					$this->object_old['location'],
+					$this->object_old['vrfIdOld'],
+					$this->object_old['permissions'],
+					$this->object_old['state'],
+					$this->object_old['sectionId'],
+					$this->object_old['ip']
 				);
 
 			# if section does not change
@@ -628,9 +654,12 @@ class Logging extends Common_functions {
 			}
 
 			//transform subnet to IP address format
-			if(strlen($new['subnet'])>0) {
-		    	$this->object_new['subnet'] = $this->Subnets->transform_address (substr($this->object_new['subnet'], 0, strpos($this->object_new['subnet'], "/")), "decimal");
-			}
+			if(strlen($this->object_new['subnet'])>0) 	{ $this->object_new['subnet'] = $this->Subnets->transform_address (substr($this->object_new['subnet'], 0, strpos($this->object_new['subnet'], "/")), "decimal");}
+			if(strlen($this->object_old['subnet'])>0) 	{ $this->object_old['subnet'] = $this->Subnets->transform_address (substr($this->object_old['subnet'], 0, strpos($this->object_old['subnet'], "/")), "decimal");}
+
+			//remove subnet/mask for folders
+			if (@$this->object_new['isFolder']=="1")	{ unset($this->object_new['subnet'], $this->object_new['mask']); }
+			if (@$this->object_old['isFolder']=="1")	{ unset($this->object_old['subnet'], $this->object_old['mask']); }
 		}
 		# remove order fields
 		elseif($this->object_type == "section") {
@@ -1156,8 +1185,8 @@ class Logging extends Common_functions {
 		$content[] = "<tr><td colspan='2'><hr></td></tr>";
 		$content[] = "<tr><td colspan='2'><font $style>Changes:<br>";
 		$content[] = "<tr><td colspan='2'><font $style>&nbsp;<br>";
-		$content[] = str_replace("\r\n", "<br>",$changelog)."</font>";
-		$content[] = "</td></tr>";
+		$changelog = str_replace("\r\n", "<br>",$changelog);
+		$content[] = "$changelog</font></td></tr>";
 		$content[] = "</table>";
 		$content[] = "</div>";
 
@@ -1179,7 +1208,6 @@ class Logging extends Common_functions {
 		$mail_settings = $this->Tools->fetch_object("settingsMail", "id", 1);
 
 		# initialize mailer
-		require( dirname(__FILE__) . '/class.Mail.php' );
 		$phpipam_mail = new phpipam_mail($this->settings, $mail_settings);
 		$phpipam_mail->initialize_mailer();
 
