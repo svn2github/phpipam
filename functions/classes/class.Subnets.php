@@ -291,7 +291,8 @@ class Subnets extends Common_functions {
 							"vlanId"=>@$subnet['vlanId'],
 							"vrfId"=>@$subnet['vrfId'],
 							"allowRequests"=>@$subnet['allowRequests'],
-							"showName"=>@$subnet['showName']
+							"showName"=>@$subnet['showName'],
+							"permissions"=>$subnet['permissions']
 							);
 			//create new subnets
 			$this->modify_subnet ("add", $values);
@@ -411,9 +412,12 @@ class Subnets extends Common_functions {
 	 * @access public
 	 * @return void
 	 */
-	public function fetch_all_subnets_search () {
+	public function fetch_all_subnets_search ($type = "IPv4") {
+		# set query (4294967295 = 255.255.255.255)
+		if ($type=="IPv4")	{ $query = "SELECT `id`,`subnet`,`mask` FROM `subnets` where `subnet` < 4294967295;"; }
+		else				{ $query = "SELECT `id`,`subnet`,`mask` FROM `subnets` where `subnet` > 4294967295;"; }
 		# fetch
-		try { $subnets = $this->Database->getObjectsQuery("SELECT `id`,`subnet`,`mask` FROM `subnets`;"); }
+		try { $subnets = $this->Database->getObjectsQuery($query); }
 		catch (Exception $e) {
 			$this->Result->show("danger", _("Error: ").$e->getMessage());
 			return false;
@@ -2015,6 +2019,16 @@ class Subnets extends Common_functions {
 			# set permission
 			$permission = $option['value']['id']!="" ? $this->check_permission ($user, $option['value']['id']) : 0;
 
+			if ($this->settings->subnetView == 0){
+				$current_description = $this->transform_to_dotted($option['value']['subnet']).'/'.$option['value']['mask'];
+			}
+			elseif ($this->settings->subnetView == 1){
+				$current_description = $option['value']['description'];
+			}
+			elseif ($this->settings->subnetView == 2){
+				$current_description = $this->transform_to_dotted($option['value']['subnet']).'/'.$option['value']['mask'].' ( '.$option['value']['description'] . ' )';
+			}
+
 			if ( $option === false )
 			{
 				$parent = array_pop( $parent_stack );
@@ -2041,7 +2055,7 @@ class Subnets extends Common_functions {
 					# print subnet
 					else {
 						$html[] = '<li class="folder folder-'.$open.' '.$active.'"><i data-str_id="'.$curr_id.'" class="fa fa-gray fa-folder-'.$open.'-o" rel="tooltip" data-placement="right" data-html="true" title="'._('Subnet contains more subnets').'<br>'._('Click on folder to open/close').'"></i>';
-						$html[] = '<a href="'.create_link("subnets",$option['value']['sectionId'],$option['value']['id']).'" rel="tooltip" data-placement="right" title="'.$option['value']['description'].'">'.$this->transform_to_dotted($option['value']['subnet']).'/'.$option['value']['mask'].'</a>';
+						$html[] = '<a href="'.create_link("subnets",$option['value']['sectionId'],$option['value']['id']).'" rel="tooltip" data-placement="right" title="'.$option['value']['description'].'">'.$current_description.'</a>';
 					}
 
 					# print submenu
@@ -2068,7 +2082,7 @@ class Subnets extends Common_functions {
 					# print subnet
 					else {
 						$html[] = '<li class="leaf '.$active.'"><i data-str_id="'.$curr_id.'" class="'.$leafClass.' fa fa-gray fa-angle-right"></i>';
-						$html[] = '<a href="'.create_link("subnets",$option['value']['sectionId'],$option['value']['id']).'" rel="tooltip" data-placement="right" title="'.$option['value']['description'].'">'.$this->transform_to_dotted($option['value']['subnet']).'/'.$option['value']['mask'].'</a></li>';
+						$html[] = '<a href="'.create_link("subnets",$option['value']['sectionId'],$option['value']['id']).'" rel="tooltip" data-placement="right" title="'.$option['value']['description'].'">'.$current_description.'</a></li>';
 					}
 				}
 		}
@@ -2340,7 +2354,7 @@ class Subnets extends Common_functions {
 				if($count==1) {
 					# is folder?
 					if($option['value']['isFolder']==1) {
-					$html[] = "	<td class='level$count'><span class='structure' style='padding-left:$padding; margin-left:$margin;'></span><i class='fa fa-sfolder fa-pad-right-3 fa-folder-open'></i> <a href='".create_link("folder",$option['value']['sectionId'],$option['value']['id'])."'> $description</a></td>";
+					$html[] = "	<td class='level$count'><span class='structure' style='padding-left:$padding; margin-left:$margin;'></span><i class='fa fa-sfolder fa-pad-right-3 fa-folder-open'></i> <a href='".create_link("folder",$option['value']['sectionId'],$option['value']['id'])."TT'> $description</a></td>";
 					$html[] = "	<td class='level$count'><span class='structure' style='padding-left:$padding; margin-left:$margin;'></span><i class='fa fa-sfolder fa-pad-right-3 fa-folder-open'></i>  $description</td>";
 
 					}
