@@ -2019,14 +2019,17 @@ class Subnets extends Common_functions {
 			# set permission
 			$permission = $option['value']['id']!="" ? $this->check_permission ($user, $option['value']['id']) : 0;
 
-			if ($this->settings->subnetView == 0){
+			# set view
+			if ($this->settings->subnetView == 0) {
 				$current_description = $this->transform_to_dotted($option['value']['subnet']).'/'.$option['value']['mask'];
 			}
-			elseif ($this->settings->subnetView == 1){
-				$current_description = $option['value']['description'];
+			elseif ($this->settings->subnetView == 1) {
+				$description_print = strlen($option['value']['description'])>0 ? $option['value']['description'] : $this->transform_to_dotted($option['value']['subnet']).'/'.$option['value']['mask'];		// fix for empty
+				$current_description = $description_print;
 			}
-			elseif ($this->settings->subnetView == 2){
-				$current_description = $this->transform_to_dotted($option['value']['subnet']).'/'.$option['value']['mask'].' ( '.$option['value']['description'] . ' )';
+			elseif ($this->settings->subnetView == 2) {
+				$description_print = strlen($option['value']['description'])>0 ? "(".$option['value']['description'].")" : "";		// fix for empty
+				$current_description = $this->transform_to_dotted($option['value']['subnet']).'/'.$option['value']['mask'].' '.$description_print;
 			}
 
 			if ( $option === false )
@@ -2354,7 +2357,7 @@ class Subnets extends Common_functions {
 				if($count==1) {
 					# is folder?
 					if($option['value']['isFolder']==1) {
-					$html[] = "	<td class='level$count'><span class='structure' style='padding-left:$padding; margin-left:$margin;'></span><i class='fa fa-sfolder fa-pad-right-3 fa-folder-open'></i> <a href='".create_link("folder",$option['value']['sectionId'],$option['value']['id'])."TT'> $description</a></td>";
+					$html[] = "	<td class='level$count'><span class='structure' style='padding-left:$padding; margin-left:$margin;'></span><i class='fa fa-sfolder fa-pad-right-3 fa-folder-open'></i> <a href='".create_link("folder",$option['value']['sectionId'],$option['value']['id'])."'> $description</a></td>";
 					$html[] = "	<td class='level$count'><span class='structure' style='padding-left:$padding; margin-left:$margin;'></span><i class='fa fa-sfolder fa-pad-right-3 fa-folder-open'></i>  $description</td>";
 
 					}
