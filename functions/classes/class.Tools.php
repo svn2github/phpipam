@@ -31,7 +31,6 @@ class Tools extends Common_functions {
 	 * __construct method
 	 *
 	 * @access public
-	 * @return void
 	 */
 	public function __construct (Database_PDO $database) {
 		# set database object
@@ -40,35 +39,6 @@ class Tools extends Common_functions {
 		$this->Result = new Result ();
 		# set debugging
 		$this->set_debugging ();
-	}
-
-	/**
-	 * Initializes PEAR Net IPv4 object
-	 *
-	 * @access private
-	 * @return void
-	 */
-	private function initialize_pear_net_IPv4 () {
-		//initialize NET object
-		if(!is_object($this->Net_IPv4)) {
-			require_once( dirname(__FILE__) . '/../../functions/PEAR/Net/IPv4.php' );
-			//initialize object
-			$this->Net_IPv4 = new Net_IPv4();
-		}
-	}
-	/**
-	 * Initializes PEAR Net IPv6 object
-	 *
-	 * @access private
-	 * @return void
-	 */
-	private function initialize_pear_net_IPv6 () {
-		//initialize NET object
-		if(!is_object($this->Net_IPv6)) {
-			require_once( dirname(__FILE__) . '/../../functions/PEAR/Net/IPv6.php' );
-			//initialize object
-			$this->Net_IPv6 = new Net_IPv6();
-		}
 	}
 
 
@@ -337,17 +307,25 @@ class Tools extends Common_functions {
 	 * @return array
 	 */
 	public function fetch_devices ($field=null, $val=null, $order_field="id", $order_direction="asc") {
+		# escape sorts
+		$order_field 	 = $this->Database->escape ($order_field);
+		$order_direction = $this->Database->escape ($order_direction);
+
 		# set query
 		if(!is_null($field)) {
-			# escape method/table
-			$field = $this->Database->escape($field);
+			// validate field
+			$permitted_fields = $this->get_permitted_fields ("devices");
+			if (!in_array($field, $permitted_fields)) {
+				$this->Result->show("danger", _('Invalid field '.$field), false);
+				return false;
+			}
 
-			$query  = "SELECT * FROM `devices` where `$field` like ? order by ? ?;";
-			$params = array("%$val%", $order_field, $order_direction);
+			$query  = "SELECT * FROM `devices` where `$field` like ? order by $order_field $order_direction;";
+			$params = array("%$val%");
 		}
 		else {
-			$query  = "SELECT * FROM `devices` order by ? ?;";
-			$params = array($order_field, $order_direction);
+			$query  = "SELECT * FROM `devices` order by $order_field $order_direction;";
+			$params = array();
 		}
 		# fetch
 		try { $devices = $this->Database->getObjectsQuery($query, $params); }
@@ -399,6 +377,27 @@ class Tools extends Common_functions {
 				return false;
 			}
 		}
+	}
+
+	/**
+	 * Get permitted fields from database
+	 *
+	 * @access private
+	 * @param mixed $table
+	 * @return void
+	 */
+	private function get_permitted_fields ($table) {
+		try { $fields = $this->Database->getObjectsQuery("describe `$table`;", array($table)); }
+		catch (Exception $e) {
+			$this->Result->show("danger", _("Error: ").$e->getMessage());
+			return false;
+		}
+		// loop and return array of permitted
+		foreach ($fields as $f) {
+			$out[] = $f->Field;
+		}
+		// return fields
+		return $out;
 	}
 
 	/**
