@@ -288,6 +288,19 @@ class User extends Common_functions {
 	}
 
 	/**
+	 * Cerates cookie to prevent csrf
+	 *
+	 * @access private
+	 * @return void
+	 */
+	public function create_csrf_cookie () {
+    	// save cookie
+    	$_SESSION['csrf_cookie'] = md5(uniqid(mt_rand(), true));
+    	// return
+    	return $_SESSION['csrf_cookie'];
+	}
+
+	/**
 	 * Sets translation for logged in user
 	 *
 	 * @access private
@@ -477,7 +490,7 @@ class User extends Common_functions {
 	    	if(sizeof($subnets)>0) {
 		    	# fetch details for each subnet
 				foreach($subnets as $id) {
-					$query = "select `su`.`id` as `subnetId`,`se`.`id` as `sectionId`, `subnet`, `mask`,`su`.`description`,`se`.`description` as `section`, `vlanId`, `isFolder`
+					$query = "select `su`.`id` as `subnetId`,`se`.`id` as `sectionId`, `subnet`, `mask`,`isFull`,`su`.`description`,`se`.`description` as `section`, `vlanId`, `isFolder`
 							  from `subnets` as `su`, `sections` as `se` where `su`.`id` = ? and `su`.`sectionId` = `se`.`id` limit 1;";
 
 					try { $fsubnet = $this->Database->getObjectQuery($query, array($id)); }

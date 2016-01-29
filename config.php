@@ -5,7 +5,7 @@
 $db['host'] = "localhost";
 $db['user'] = "phpipam";
 $db['pass'] = "phpipamadmin";
-$db['name'] = "phpipam";
+$db['name'] = "phpipam_1.3";
 $db['port'] = 3306;
 
 
@@ -40,6 +40,6 @@ $phpsessname = "phpipam";
  *	RewriteBase / in .htaccess
  ******************************/
 if(!defined('BASE'))
-define('BASE', "/1.2/");
+define('BASE', "/1.3/");
 
 ?>

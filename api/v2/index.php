@@ -88,12 +88,13 @@ try {
 	}
 
 
-	// append POST parameters if POST
-	if($_SERVER['REQUEST_METHOD']=="POST"){
+	// append POST parameters if POST or PATCH
+	if($_SERVER['REQUEST_METHOD']=="POST" || $_SERVER['REQUEST_METHOD']=="PATCH"){
 		// if application tupe is JSON (application/json)
         if($_SERVER['CONTENT_TYPE']=="application/json"){
                 $rawPostData = file_get_contents('php://input');
                 $json = json_decode($rawPostData,true);
+                if(is_array($json))
                 $params = array_merge((array) $params, $json);
                 $params = (object) $params;
         }
@@ -101,6 +102,7 @@ try {
         elseif($_SERVER['CONTENT_TYPE']=="application/xml"){
                 $rawPostData = file_get_contents('php://input');
                 $xml = $Response->xml_to_array($rawPostData);
+                if(is_array($xml))
                 $params = array_merge((array) $params, $xml);
                 $params = (object) $params;
         }
